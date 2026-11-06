@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Preview — UBS Finder (Rede & Mapa)</title>
+
+  <!-- Leaflet CSS & JS (Mapa interativo real sem baixar nada) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* Moldura estilo Smartphone moderno */
+    .phone-container {
+      width: 100%;
+      max-width: 412px;
+      height: 870px;
+      background: #f8fafc;
+      border-radius: 44px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 10px #1e293b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Island / Notch */
+    .notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 24px;
+      background: #000000;
+      border-radius: 20px;
+      z-index: 1000;
+    }
+
+    /* MAPA (ocupa o fundo superior e meio) */
+    #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background: #e5e7eb;
+    }
+
+    /* OVERLAY SUPERIOR: Busca + Filtros */
+    .top-overlay {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      padding: 10px 14px 4px 14px;
+      pointer-events: none;
+    }
+
+    .top-overlay > * {
+      pointer-events: auto;
+    }
+
+    /* Barra de Busca */
+    .search-box {
+      background: #ffffff;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      padding: 6px 6px 6px 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 13px;
+      color: #1e293b;
+      padding-left: 8px;
+      font-weight: 500;
+    }
+
+    .search-box input::placeholder {
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .disguise-btn {
+      background: #f1f5f9;
+      border: none;
+      outline: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+      transition: background 0.2s;
+    }
+
+    .disguise-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* Filtros Horizontais */
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-pill {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 22px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+
+    .filter-pill.active {
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
+    }
+
+    /* Botão flutuante de localização */
+    .location-fab {
+      position: absolute;
+      right: 16px;
+      top: 150px;
+      z-index: 500;
+      width: 42px;
+      height: 42px;
+      background: #ffffff;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* BOTTOM SHEET */
+    .bottom-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 60px;
+      height: 480px;
+      background: #ffffff;
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+      z-index: 400;
+      display: flex;
+      flex-direction: column;
+      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sheet-handle-area {
+      padding: 10px 0 6px 0;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .sheet-handle {
+      width: 44px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .sheet-header {
+      padding: 6px 18px 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .sheet-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .sheet-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .status-dot-green {
+      width: 6px;
+      height: 6px;
+      background: #16a34a;
+      border-radius: 50%;
+    }
+
+    .region-badge {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    /* Lista de Cards com Scroll suave */
+    .cards-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scrollbar-width: thin;
+    }
+
+    /* Card da UBS */
+    .ubs-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+
+    .ubs-card.selected {
+      border-color: #2563eb;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
+    }
+
+    .ubs-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    /* Badge de status (Porta Aberta vs Encaminhamento) */
+    .badge-open {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+
+    .badge-warn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #fef3c7;
+      color: #b45309;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+
+    .meta-line {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .meta-line strong {
+      color: #0f172a;
+    }
+
+    /* Alerta Linha de Cuidado */
+    .care-line-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 11.5px;
+      color: #78350f;
+      line-height: 1.4;
+    }
+
+    .care-line-box svg {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Tags */
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .tag-blue {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .tag-gray {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    /* Botões de Ação */
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      height: 38px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-dark {
+      background: #111827;
+      color: #ffffff;
+    }
+
+    .btn-gray {
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    /* BOTTOM TAB NAVIGATION */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #ffffff;
+      border-top: 1px solid #f1f5f9;
+      z-index: 500;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+
+    .nav-tab.active {
+      color: #0f172a;
+    }
+
+    /* Custom Leaflet Markers */
+    .marker-label-pill {
+      background: #ffffff;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .marker-pin-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #93c5fd;
+      border: 2px solid #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1d4ed8;
+      margin: 3px auto 0 auto;
+    }
+
+    /* Marcador do Usuário */
+    .user-loc-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .user-pulse {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.2);
+      animation: pulse 1.6s infinite ease-out;
+      position: absolute;
+      top: -6px;
+    }
+
+    .user-dot {
+      width: 14px;
+      height: 14px;
+      background: #0f172a;
+      border: 2.5px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 2;
+    }
+
+    .user-tag {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 10px;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* MODAL DISFARÇAR (Calculadora Discreta) */
+    .calc-modal {
+      position: absolute;
+      inset: 0;
+      background: #000000;
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 16px 28px 16px;
+    }
+
+    .calc-modal.open {
+      display: flex;
+    }
+
+    .calc-top-bar {
+      position: absolute;
+      top: 36px;
+      right: 18px;
+    }
+
+    .calc-exit-btn {
+      background: #262626;
+      color: #94a3b8;
+      border: none;
+      border-radius: 14px;
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .calc-display {
+      color: #ffffff;
+      font-size: 56px;
+      font-weight: 300;
+      text-align: right;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      word-break: break-all;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .calc-key {
+      height: 64px;
+      border-radius: 50%;
+      border: none;
+      background: #333333;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calc-key.op {
+      background: #f59e0b;
+      color: #ffffff;
+    }
+
+    .calc-key.fn {
+      background: #a3a3a3;
+      color: #000000;
+    }
+
+    .calc-key.zero {
+      grid-column: span 2;
+      border-radius: 35px;
+      justify-content: flex-start;
+      padding-left: 26px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-container">
+    <div class="notch"></div>
+
+    <!-- MAPA -->
+    <div id="map"></div>
+
+    <!-- BOTÃO DE LOCALIZAÇÃO FLUTUANTE -->
+    <button class="location-fab" onclick="recenterMap()" title="Minha Localização">
+      <i data-lucide="crosshair" style="width: 20px; height: 20px; color: #1e293b;"></i>
+    </button>
+
+    <!-- OVERLAY SUPERIOR: Busca e Filtros -->
+    <div class="top-overlay">
+      <div class="search-box">
+        <i data-lucide="search" style="width: 17px; height: 17px; color: #475569;"></i>
+        <input type="text" id="searchInput" placeholder="Buscar UBS, PrEP, acolhimento, endereço..." oninput="handleSearch(this.value)" />
+        <button class="disguise-btn" onclick="toggleDisguise(true)">
+          <i data-lucide="shield" style="width: 13px; height: 13px;"></i>
+          Disfarçar
+        </button>
+      </div>
+
+      <div class="filter-scroll">
+        <button class="filter-pill active" onclick="setFilter(this, 'all')">Todos os Serviços</button>
+        <button class="filter-pill" onclick="setFilter(this, 'sampa_trans')">Saúde SUS (Sampa Trans)</button>
+        <button class="filter-pill" onclick="setFilter(this, 'acolhimento')">Acolhimento & Escuta</button>
+        <button class="filter-pill" onclick="setFilter(this, 'prep')">PrEP / PEP</button>
+        <button class="filter-pill" onclick="setFilter(this, 'testes')">Testagem Rápida</button>
+      </div>
+    </div>
+
+    <!-- BOTTOM SHEET COM CARDS -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="sheet-handle-area" onclick="toggleSheetExpansion()">
+        <div class="sheet-handle"></div>
+      </div>
+
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">Mais Próximos de Você (São Paulo)</div>
+          <div class="sheet-sub">
+            <span class="status-dot-green"></span>
+            <span id="unitsCount">2 unidades verificadas com atendimento hoje</span>
+          </div>
+        </div>
+        <div class="region-badge">CRS Centro</div>
+      </div>
+
+      <div class="cards-list" id="cardsContainer">
+        <!-- Card 1: UBS República -->
+        <div class="ubs-card selected" id="card-1" onclick="focusUBS(1)">
+          <div class="ubs-card-title">UBS República - Fernanda Sante Limeira</div>
+          <div class="badge-open">
+            <i data-lucide="check-circle-2" style="width: 13px; height: 13px;"></i>
+            Porta Aberta: Testes Rápidos & PrEP
+          </div>
+          <div class="meta-line">
+            Praça do Patriarca, 100 • <strong>450m de você</strong> • Aberto até 19h
+          </div>
+          <div class="tags-row">
+            <span class="tag tag-blue">Rede Sampa Trans</span>
+            <span class="tag tag-gray">Nome Social Garantido</span>
+            <span class="tag tag-gray">Profilaxia PEP</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-outline" onclick="callPhone('1131234567')">
+              <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+              Ligar
+            </button>
+            <button class="btn btn-dark" onclick="openDirections(-23.5489, -46.6388)">
+              <i data-lucide="navigation" style="width: 14px; height: 14px;"></i>
+              Como Chegar
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: CR POP TT -->
+        <div class="ubs-card" id="card-2" onclick="focusUBS(2)">
+          <div class="ubs-card-title">CR POP TT Janaina Lima - Bom Retiro</div>
+          <div class="badge-warn">
+            <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
+            Exige Encaminhamento Prévio
+          </div>
+          <div class="meta-line">
+            Rua Jaraguá, 866 • <strong>1.8 km de você</strong> • Seg a Sex até 19h
+          </div>
+
+          <div class="care-line-box">
+            <i data-lucide="git-fork" style="width: 16px; height: 16px; color: #b45309;"></i>
+            <div>
+              <strong>Linha de Cuidado:</strong> Início da hormonização exige acolhimento prévio na UBS de referência do seu bairro.
+            </div>
+          </div>
+
+          <div class="tags-row">
+            <span class="tag tag-blue">Ambulatório TT Especializado</span>
+            <span class="tag tag-gray">Processo Transexualizador</span>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-outline" onclick="alert('Linha de cuidado da População Travesti e Transexual da Cidade de SP.')">
+              <i data-lucide="git-branch" style="width: 14px; height: 14px;"></i>
+              Ver Fluxo
+            </button>
+            <button class="btn btn-gray" onclick="focusUBS(2)">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+              Ver no Mapa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <div class="bottom-nav">
+      <div class="nav-tab active">
+        <i data-lucide="map" style="width: 21px; height: 21px;"></i>
+        <span>Rede & Mapa</span>
+      </div>
+      <div class="nav-tab" onclick="alert('Aba Direitos & IA: Guia de garantias legais, denúncias e acolhimento.')">
+        <i data-lucide="scale" style="width: 21px; height: 21px;"></i>
+        <span>Direitos & IA</span>
+      </div>
+      <div class="nav-tab" onclick="alert('Aba Capacitação: Cursos e trilhas de formação em saúde.')">
+        <i data-lucide="graduation-cap" style="width: 21px; height: 21px;"></i>
+        <span>Capacitação</span>
+      </div>
+    </div>
+
+    <!-- MODAL CALCULADORA (MODO DISFARÇAR) -->
+    <div class="calc-modal" id="calcModal">
+      <div class="calc-top-bar">
+        <button class="calc-exit-btn" onclick="toggleDisguise(false)">✕ Voltar ao app</button>
+      </div>
+      <div class="calc-display" id="calcDisplay">0</div>
+      <div class="calc-grid">
+        <button class="calc-key fn" onclick="calcKey('C')">C</button>
+        <button class="calc-key fn" onclick="calcKey('+/-')">±</button>
+        <button class="calc-key fn" onclick="calcKey('%')">%</button>
+        <button class="calc-key op" onclick="calcKey('/')">÷</button>
+
+        <button class="calc-key" onclick="calcKey('7')">7</button>
+        <button class="calc-key" onclick="calcKey('8')">8</button>
+        <button class="calc-key" onclick="calcKey('9')">9</button>
+        <button class="calc-key op" onclick="calcKey('*')">×</button>
+
+        <button class="calc-key" onclick="calcKey('4')">4</button>
+        <button class="calc-key" onclick="calcKey('5')">5</button>
+        <button class="calc-key" onclick="calcKey('6')">6</button>
+        <button class="calc-key op" onclick="calcKey('-')">-</button>
+
+        <button class="calc-key" onclick="calcKey('1')">1</button>
+        <button class="calc-key" onclick="calcKey('2')">2</button>
+        <button class="calc-key" onclick="calcKey('3')">3</button>
+        <button class="calc-key op" onclick="calcKey('+')">+</button>
+
+        <button class="calc-key zero" onclick="calcKey('0')">0</button>
+        <button class="calc-key" onclick="calcKey('.')">,</button>
+        <button class="calc-key op" onclick="calcKey('=')">=</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Inicialização dos ícones Lucide
+    lucide.createIcons();
+
+    // 1. INICIALIZAÇÃO DO MAPA (Leaflet com tiles limpos Positron)
+    const userCoords = [-23.5460, -46.6405];
+    const ubs1Coords = [-23.5489, -46.6388]; // UBS República
+    const ubs2Coords = [-23.5350, -46.6450]; // CR POP TT
+
+    const map = L.map('map', {
+      center: [-23.5420, -46.6410],
+      zoom: 15,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    // Tiles estilo minimalista cinza claro idêntico ao Google Maps do print
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // 2. MARCADOR: "Você está aqui"
+    const userIcon = L.divIcon({
+      className: 'custom-user-marker',
+      html: `
+        <div class="user-loc-wrapper">
+          <div class="user-pulse"></div>
+          <div class="user-dot"></div>
+          <div class="user-tag">Você está aqui</div>
+        </div>
+      `,
+      iconSize: [80, 50],
+      iconAnchor: [40, 16]
+    });
+    L.marker(userCoords, { icon: userIcon }).addTo(map);
+
+    // 3. MARCADOR: UBS República
+    const ubs1Icon = L.divIcon({
+      className: 'custom-ubs-marker',
+      html: `
+        <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+          <div class="marker-label-pill">
+            <span style="width:6px; height:6px; background:#16a34a; border-radius:50%;"></span>
+            UBS República
+          </div>
+          <div class="marker-pin-circle">
+            <i data-lucide="plus" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+          </div>
+        </div>
+      `,
+      iconSize: [110, 60],
+      iconAnchor: [55, 55]
+    });
+    const marker1 = L.marker(ubs1Coords, { icon: ubs1Icon }).addTo(map);
+    marker1.on('click', () => focusUBS(1));
+
+    // 4. MARCADOR: CR POP TT
+    const ubs2Icon = L.divIcon({
+      className: 'custom-ubs-marker',
+      html: `
+        <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+          <div class="marker-label-pill">
+            <span style="width:6px; height:6px; background:#b45309; border-radius:50%;"></span>
+            CR POP TT
+          </div>
+          <div class="marker-pin-circle">
+            <i data-lucide="briefcase" style="width: 15px; height: 15px; stroke-width: 2.4;"></i>
+          </div>
+        </div>
+      `,
+      iconSize: [110, 60],
+      iconAnchor: [55, 55]
+    });
+    const marker2 = L.marker(ubs2Coords, { icon: ubs2Icon }).addTo(map);
+    marker2.on('click', () => focusUBS(2));
+
+    // Re-renderizar ícones dentro dos marcadores Leaflet
+    setTimeout(() => lucide.createIcons(), 100);
+
+    // 5. INTERATIVIDADE: Selecionar e focar UBS
+    function focusUBS(id) {
+      document.querySelectorAll('.ubs-card').forEach(c => c.classList.remove('selected'));
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.classList.add('selected');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      if (id === 1) {
+        map.flyTo(ubs1Coords, 16, { duration: 0.8 });
+      } else {
+        map.flyTo(ubs2Coords, 16, { duration: 0.8 });
+      }
+    }
+
+    function recenterMap() {
+      map.flyTo(userCoords, 15.5, { duration: 0.8 });
+    }
+
+    // 6. EXPANDIR / RECOLHER BOTTOM SHEET
+    let sheetExpanded = false;
+    function toggleSheetExpansion() {
+      const sheet = document.getElementById('bottomSheet');
+      sheetExpanded = !sheetExpanded;
+      sheet.style.height = sheetExpanded ? '680px' : '480px';
+    }
+
+    // 7. FILTROS RÁPIDOS
+    function setFilter(el, filterType) {
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+
+      const card1 = document.getElementById('card-1');
+      const card2 = document.getElementById('card-2');
+      const countEl = document.getElementById('unitsCount');
+
+      if (filterType === 'sampa_trans') {
+        card1.style.display = 'block';
+        card2.style.display = 'block';
+        countEl.textContent = '2 unidades com linha Sampa Trans hoje';
+      } else if (filterType === 'prep') {
+        card1.style.display = 'block';
+        card2.style.display = 'none';
+        countEl.textContent = '1 unidade verificada para PrEP hoje';
+      } else {
+        card1.style.display = 'block';
+        card2.style.display = 'block';
+        countEl.textContent = '2 unidades verificadas com atendimento hoje';
+      }
+    }
+
+    // 8. BUSCA POR TEXTO
+    function handleSearch(term) {
+      const q = term.toLowerCase();
+      const card1 = document.getElementById('card-1');
+      const card2 = document.getElementById('card-2');
+
+      const match1 = 'ubs república fernanda sante limeira patriarca prep pep'.includes(q);
+      const match2 = 'cr pop tt janaina lima bom retiro jaraguá hormonização'.includes(q);
+
+      card1.style.display = match1 || q === '' ? 'block' : 'none';
+      card2.style.display = match2 || q === '' ? 'block' : 'none';
+    }
+
+    // 9. LIGAÇÃO & ROTAS
+    function callPhone(num) {
+      alert(`Discando para a unidade: ${num}`);
+    }
+
+    function openDirections(lat, lng) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+    }
+
+    // 10. MODO DISFARÇAR (Calculadora funcional)
+    function toggleDisguise(show) {
+      const modal = document.getElementById('calcModal');
+      modal.className = show ? 'calc-modal open' : 'calc-modal';
+      if (show) {
+        calcValue = '0';
+        updateCalc();
+      }
+    }
+
+    let calcValue = '0';
+    function updateCalc() {
+      document.getElementById('calcDisplay').textContent = calcValue;
+    }
+
+    function calcKey(key) {
+      if (key === 'C') {
+        calcValue = '0';
+      } else if (key === '=') {
+        try {
+          calcValue = String(eval(calcValue.replace(/×/g, '*').replace(/÷/g, '/')));
+        } catch {
+          calcValue = '0';
+        }
+      } else {
+        calcValue = calcValue === '0' ? key : calcValue + key;
+      }
+      updateCalc();
+    }
+  </script>
+</body>
+</html>

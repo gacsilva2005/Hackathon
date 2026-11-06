@@ -432,54 +432,72 @@
                 <span class="material-symbols-outlined text-[16px] text-brand-navy icon-fill">neurology</span>
                 Tire Dúvidas com o Assistente SUS
               </span>
-              <span class="text-[10px] text-status-green bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">Gemini 3.5 Flash-Lite</span>
+              <button onclick="configureBrowserApiKey()" id="ai-status-badge" class="text-[10px] text-status-green bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 hover:bg-emerald-100 transition-all" title="Clique para ver status ou configurar chave">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" id="ai-status-dot"></span>
+                <span id="ai-status-text">Gemini 2.5 Flash</span>
+              </button>
             </div>
             
-            <div class="flex items-center bg-canvas border border-neutral-200 rounded-xl px-3 py-1">
-              <input type="text" id="ai-query-input" placeholder="Ex: Como retificar o nome no cartório?" value="Como funciona a retificação de nome no cartório e início de hormônio?" class="bg-transparent text-xs text-neutral-900 flex-1 outline-none font-medium py-1.5" />
+            <div class="flex items-center bg-canvas border border-neutral-300 focus-within:border-brand-navy focus-within:bg-white rounded-xl px-3 py-1 transition-all">
+              <input type="text" id="ai-query-input" onkeydown="if(event.key==='Enter') runAIConsultation()" placeholder="Digite qualquer dúvida sobre SUS, leis, cartório ou PEP..." value="Me recusaram o nome social na recepção da UBS, o que eu faço?" class="bg-transparent text-xs text-neutral-900 flex-1 outline-none font-medium py-1.5" />
+              <button onclick="document.getElementById('ai-query-input').value=''; document.getElementById('ai-query-input').focus();" class="text-neutral-400 hover:text-neutral-700 ml-1 flex items-center" title="Limpar pergunta">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+
+            <!-- Sugestões Rápidas para Teste em 1 Clique (Pitch Ready) -->
+            <div class="space-y-1">
+              <span class="text-[10px] font-semibold text-neutral-400 block">Toque para testar perguntas diferentes:</span>
+              <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-0.5 text-[11px]">
+                <button onclick="askQuickQuestion('Me recusaram o nome social na recepção da UBS, o que eu faço?')" class="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-brand-blue/30 text-neutral-700 font-medium shrink-0 transition-all">Recusa de Nome Social</button>
+                <button onclick="askQuickQuestion('Como fazer a retificação de nome e gênero gratuita no cartório em SP?')" class="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-brand-blue/30 text-neutral-700 font-medium shrink-0 transition-all">Retificação Cartório</button>
+                <button onclick="askQuickQuestion('Tive exposição de risco há poucas horas, onde consigo PEP 72h grátis?')" class="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-brand-blue/30 text-neutral-700 font-medium shrink-0 transition-all">Urgência PEP 72h</button>
+                <button onclick="askQuickQuestion('Como iniciar a terapia hormonal pelo SUS em São Paulo?')" class="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-brand-blue/30 text-neutral-700 font-medium shrink-0 transition-all">Iniciar Hormonização</button>
+                <button onclick="askQuickQuestion('Sofri transfobia, como registrar boletim de ocorrência na DECRADI?')" class="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-brand-blue/30 text-neutral-700 font-medium shrink-0 transition-all">Denúncia DECRADI</button>
+              </div>
             </div>
 
             <button onclick="runAIConsultation()" id="ai-submit-btn" class="w-full h-10 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all">
               <span class="material-symbols-outlined text-[16px] icon-fill">auto_awesome</span>
-              <span>Consultar IA (Agno + Gemini)</span>
+              <span>Consultar IA Agora</span>
             </button>
           </div>
 
           <!-- Card Dinâmico da IA (Estrutura ResumoDireitoSUS) -->
           <div id="ai-response-card" class="bg-white rounded-2xl border border-brand-blue/60 p-4 shadow-2xs space-y-3 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-navy bg-brand-blue/25 px-2.5 py-0.5 rounded-full">
+            <div class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-navy bg-brand-blue/25 px-2.5 py-0.5 rounded-full shrink-0">
                 <span class="material-symbols-outlined text-[14px] icon-fill">auto_awesome</span>
-                <span id="ai-card-badge">Resumo Gerado por IA</span>
+                <span id="ai-card-badge">Síntese Jurídica &amp; SUS</span>
               </span>
-              <span class="text-[11px] text-neutral-400" id="ai-card-law">Portaria MS nº 2.803 revisada</span>
+              <span class="text-[10.5px] text-neutral-500 font-medium truncate" id="ai-card-law">Portaria MS nº 2.803 • Decreto 58.228 SP</span>
             </div>
 
             <div>
-              <h2 class="text-sm font-bold text-neutral-900" id="ai-card-title">Resumo com IA: Direitos na Rede SUS 2026</h2>
-              <p class="text-xs text-neutral-600 mt-1" id="ai-card-summary">
-                Garantia de acolhimento integral, respeito à identidade de gênero e acesso desburocratizado a serviços de saúde pelo SUS em São Paulo.
+              <h2 class="text-sm font-bold text-neutral-900 leading-snug" id="ai-card-title">Seu Nome Social é Direito Garantido no SUS</h2>
+              <p class="text-xs text-neutral-600 mt-1 leading-relaxed" id="ai-card-summary">
+                Nenhuma unidade de saúde pública pode exigir retificação de documentos para usar seu Nome Social na recepção, prontuário, exames ou chamada oral.
               </p>
             </div>
             
             <ul class="space-y-2 text-xs text-neutral-700" id="ai-card-points">
               <li class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
-                <span><strong>Nome Social Obrigatório:</strong> O uso do Nome Social é garantido por lei em qualquer unidade da rede municipal e estadual, sem exigência de documento retificado prévio.</span>
+                <span><strong>Exigência Imediata:</strong> Peça a inclusão imediata do Nome Social no Cartão SUS (CNS) e no sistema SIGA na própria recepção da UBS.</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
-                <span><strong>Profilaxia PEP 72 Horas:</strong> A Profilaxia Pós-Exposição (PEP) é gratuita e deve ser iniciada prioritariamente nas primeiras 2h até no máximo 72h após exposição.</span>
+                <span><strong>Em Caso de Recusa:</strong> Acione a gerência da UBS imediatamente e registre denúncia na Ouvidoria Geral do SUS (Disque 136).</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
-                <span><strong>Processo Transexualizador:</strong> Centros Especializados municipais (ex: Janaina Lima) oferecem equipe multiprofissional contínua para o início seguro de hormonização.</span>
+                <span><strong>Proteção Municipal:</strong> Em São Paulo, o desrespeito ao Nome Social por agentes públicos é passível de sanção administrativa (Decreto 58.228).</span>
               </li>
             </ul>
 
-            <div class="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-              <span class="text-neutral-500 text-[11px]" id="ai-card-action">Ação: Procure a UBS de referência</span>
-              <button onclick="copyAIText()" class="text-brand-navy font-semibold hover:underline flex items-center gap-1">
+            <div class="pt-2.5 border-t border-neutral-100 flex items-center justify-between gap-2 text-xs">
+              <span class="text-neutral-600 text-[11px] font-medium flex-1" id="ai-card-action"><strong>Próximo passo:</strong> Acione a gerência da UBS ou ligue 136 (Ouvidoria SUS).</span>
+              <button onclick="copyAIText()" class="text-brand-navy font-semibold hover:underline flex items-center gap-1 shrink-0">
                 <span class="material-symbols-outlined text-[14px]">content_copy</span>
                 <span>Copiar</span>
               </button>
@@ -868,17 +886,158 @@
       }
     }
 
-    // Consulta à IA conectada ao modelo Gemini 3.5 Flash-Lite com fallback resiliente
+    function askQuickQuestion(questionText) {
+      const input = document.getElementById('ai-query-input');
+      input.value = questionText;
+      runAIConsultation();
+    }
+
+    function configureBrowserApiKey() {
+      const current = localStorage.getItem('GEMINI_API_KEY') || '';
+      const key = prompt(
+        'Opcional: Cole sua GOOGLE_API_KEY do Google AI Studio para chamadas diretas pelo navegador (ou deixe em branco para usar o servidor local IA/ai-server.js):',
+        current
+      );
+      if (key !== null) {
+        if (key.trim()) {
+          localStorage.setItem('GEMINI_API_KEY', key.trim());
+          document.getElementById('ai-status-text').textContent = 'Gemini Live (Chave Direta)';
+        } else {
+          localStorage.removeItem('GEMINI_API_KEY');
+          checkAIServerStatus();
+        }
+      }
+    }
+
+    async function checkAIServerStatus() {
+      const statusText = document.getElementById('ai-status-text');
+      try {
+        const res = await fetch('http://localhost:8000/health', { method: 'GET' });
+        if (res.ok) {
+          statusText.textContent = 'Gemini 2.5 Flash • Online';
+          return true;
+        }
+      } catch (e) {}
+      if (localStorage.getItem('GEMINI_API_KEY')) {
+        statusText.textContent = 'Gemini Live (Navegador)';
+        return true;
+      }
+      statusText.textContent = 'Assistente SUS Ativo';
+      return false;
+    }
+
+    function getSmartLocalFallback(query) {
+      const q = query.toLowerCase();
+
+      if (q.includes('cartório') || q.includes('retifica') || q.includes('documento') || q.includes('certidão') || q.includes('rg') || q.includes('cpf')) {
+        return {
+          titulo: "Retificação de Prenome e Gênero nos Cartórios de SP",
+          categoria: "Retificação Civil",
+          base_legal: "ADI 4275 (STF) • Provimento nº 73 do CNJ",
+          resumo_executivo: "Você tem direito de alterar prenome e marcador de gênero diretamente em qualquer Cartório de Registro Civil (RCPN), sem precisar de processo judicial, cirurgia ou laudo médico/psiquiátrico.",
+          pontos_chave: [
+            "Gratuidade Garantida: Pessoas de baixa renda têm isenção total de taxas mediante simples declaração de hipossuficiência assinada no cartório ou via Defensoria Pública.",
+            "Zero Laudos ou Cirurgia: É proibido exigir laudo psiquiátrico, parecer médico ou comprovação de cirurgia para realizar a alteração.",
+            "Sigilo Absoluto: A nova certidão não pode conter nenhuma menção de que houve retificação administrativa."
+          ],
+          acao_recomendada: "Compareça ao Cartório de Registro Civil mais próximo ou procure o Núcleo de Defesa da Diversidade da Defensoria Pública SP."
+        };
+      }
+
+      if (q.includes('pep') || q.includes('prep') || q.includes('hiv') || q.includes('exposição') || q.includes('camisinha') || q.includes('ist') || q.includes('72')) {
+        return {
+          titulo: "Urgência PEP 72h e Acesso Gratuito à PrEP no SUS",
+          categoria: "Saúde SUS",
+          base_legal: "Protocolo Clínico PCDT MS • Rede Municipal de IST/Aids SP",
+          resumo_executivo: "A Profilaxia Pós-Exposição (PEP) é um atendimento médico de urgência gratuito para prevenir o HIV após situação de risco e deve ser iniciada o mais rápido possível (idealmente em 2h, máximo de 72h).",
+          pontos_chave: [
+            "Atendimento 24h sem Agendamento: Qualquer UPA, AMA 24h ou Pronto-Socorro Municipal fornece a PEP gratuitamente a qualquer hora do dia ou da noite.",
+            "PrEP sob Demanda ou Contínua: Disponível em UBSs de Porta Aberta (como UBS República) e CTAs sem necessidade de encaminhamento prévio.",
+            "Direito ao Sigilo e Nome Social: O teste rápido e a retirada dos antirretrovirais ocorrem sob sigilo absoluto e respeito ao seu Nome Social."
+          ],
+          acao_recomendada: "Para PEP (até 72h após risco), vá imediatamente à UPA/AMA 24h mais próxima. Para PrEP, compareça à UBS República ou CTA."
+        };
+      }
+
+      if (q.includes('hormôn') || q.includes('hormon') || q.includes('testosterona') || q.includes('estradiol') || q.includes('endocrino') || q.includes('transicionar') || q.includes('ambulatório') || q.includes('janaina')) {
+        return {
+          titulo: "Como Iniciar ou Acompanhar a Hormonização pelo SUS SP",
+          categoria: "Saúde SUS",
+          base_legal: "Portaria MS nº 2.803 • Protocolo Rede Sampa Trans (SMS-SP)",
+          resumo_executivo: "A Rede Sampa Trans oferece acompanhamento multiprofissional e dispensação gratuita de hormônios (estradiol, bloqueadores e testosterona) nas unidades habilitadas da capital.",
+          pontos_chave: [
+            "Passo 1 (Porta de Entrada): Compareça à UBS de referência do seu bairro para o primeiro acolhimento e cadastro no sistema SIGA Saúde.",
+            "Passo 2 (Ambulatório ou UBS Habilitada): Mais de 48 unidades municipais e Centros de Referência (como CR POP TT Janaina Lima e Casa Ser) realizam o manejo hormonal.",
+            "Retirada na Farmácia SUS: Com a receita da rede municipal, a medicação e aplicação intramuscular são feitas gratuitamente."
+          ],
+          acao_recomendada: "Vá à UBS mais próxima com seu Cartão SUS para abrir a linha de cuidado ou consulte os detalhes do CR POP TT no mapa."
+        };
+      }
+
+      if (q.includes('violência') || q.includes('transfobia') || q.includes('agressão') || q.includes('delegacia') || q.includes('decradi') || q.includes('b.o') || q.includes('boletim') || q.includes('crime') || q.includes('denúncia')) {
+        return {
+          titulo: "Proteção Contra Transfobia e Registro na DECRADI SP",
+          categoria: "Segurança & B.O.",
+          base_legal: "ADO 26 / MI 4733 (STF) • Lei nº 7.716/1989 • Lei Estadual 10.948 SP",
+          resumo_executivo: "A transfobia é crime inafiançável e imprescritível equiparado ao racismo pelo STF. Você tem direito a registrar ocorrência com respeito integral ao seu Nome Social e identidade de gênero.",
+          pontos_chave: [
+            "Registro Online ou Presencial: Você pode registrar B.O. na Delegacia Eletrônica SP ou diretamente na DECRADI (Delegacia de Crimes Raciais e Delitos de Intolerância).",
+            "Sanção Administrativa Estadual: A Lei 10.948/SP pune estabelecimentos comerciais e órgãos públicos que pratiquem discriminação contra pessoas trans.",
+            "Acolhimento Psicossocial e Abrigo: Os Centros de Cidadania LGBTI da Prefeitura oferecem suporte jurídico gratuito e encaminhamento para acolhimento seguro."
+          ],
+          acao_recomendada: "Em emergência ligue 190. Para denúncia especializada, acione a DECRADI (Rua Brigadeiro Tobias, 527) ou Disque 100."
+        };
+      }
+
+      if (q.includes('trabalho') || q.includes('emprego') || q.includes('transcidadania') || q.includes('auxílio') || q.includes('renda') || q.includes('vaga') || q.includes('estudo')) {
+        return {
+          titulo: "Programa Transcidadania SP: Auxílio, Estudo e Emprego",
+          categoria: "Trabalho & Renda",
+          base_legal: "Lei Municipal nº 17.947/2023 • SMDHC Prefeitura de SP",
+          resumo_executivo: "O Programa Transcidadania da Prefeitura de São Paulo oferece bolsa-auxílio mensal para elevação de escolaridade, qualificação profissional e fortalecimento da autonomia.",
+          pontos_chave: [
+            "Bolsa Mensal por até 2 Anos: Concedida para participantes que frequentam o ensino fundamental, médio (EJA) ou cursos profissionalizantes.",
+            "Acompanhamento nos Centros LGBTI: A inscrição e o acompanhamento pedagógico ocorrem nos Centros de Cidadania LGBTI (Centro, Norte, Sul, Leste e Oeste).",
+            "Intermediação de Mão de Obra: O Cate (Centro de Apoio ao Trabalho) possui atendimento específico para encaminhamento a empresas parceiras."
+          ],
+          acao_recomendada: "Procure o Centro de Cidadania LGBTI da sua região para cadastro no Transcidadania e vagas do Cate."
+        };
+      }
+
+      // Default: Nome Social / Recusa na UBS (ou resposta contextualizada com a pergunta)
+      return {
+        titulo: "Garantia do Nome Social e Atendimento Digno no SUS",
+        categoria: "Nome Social",
+        base_legal: "Portaria MS nº 2.803 • Decreto Federal 8.727 • Decreto 58.228 SP",
+        resumo_executivo: `Sobre "${query}": O uso do Nome Social é direito líquido e certo em toda a rede municipal e estadual de saúde de São Paulo, sem qualquer exigência de retificação no cartório.`,
+        pontos_chave: [
+          "Inclusão Imediata na Recepção: Basta informar seu Nome Social na recepção da UBS para que ele conste no Cartão SUS, painel de chamada e receituário.",
+          "Como Agir em Caso de Recusa: Solicite imediatamente a presença da gerência da unidade e anote o protocolo de atendimento.",
+          "Canal de Denúncia Direta: Ligue 136 (Ouvidoria Geral do SUS) ou 156 (Prefeitura de SP) para reportar violação do Decreto Municipal 58.228."
+        ],
+        acao_recomendada: "Exija o registro no campo Nome Social do sistema SIGA na própria UBS ou acione a gerência local e a Ouvidoria 136."
+      };
+    }
+
+    // Consulta à IA conectada ao Gemini (via servidor local IA/ai-server.js ou chave direta)
     async function runAIConsultation() {
-      const query = document.getElementById('ai-query-input').value.trim();
+      const inputEl = document.getElementById('ai-query-input');
+      const query = inputEl.value.trim();
+      if (!query) {
+        inputEl.focus();
+        return;
+      }
+
       const btn = document.getElementById('ai-submit-btn');
+      const card = document.getElementById('ai-response-card');
       const originalText = btn.innerHTML;
       
-      btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span><span>Consultando Gemini 3.5 Flash-Lite...</span>`;
+      btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Analisando legislação com Gemini...</span>`;
       btn.disabled = true;
+      card.style.opacity = '0.6';
 
+      // 1. Tenta chamada real no servidor local Node.js/FastAPI (http://localhost:8000/api/ai/direitos)
       try {
-        // Tenta chamada real no endpoint local de IA se o backend estiver rodando
         const res = await fetch('http://localhost:8000/api/ai/direitos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -886,44 +1045,67 @@
         });
         if (res.ok) {
           const data = await res.json();
-          renderAIResult(data);
+          renderAIResult(data, `Gemini Live (${data.modelo_utilizado || 'API Real'})`);
+          document.getElementById('ai-status-text').textContent = 'Gemini 2.5 Flash • Online';
           btn.innerHTML = originalText;
           btn.disabled = false;
+          card.style.opacity = '1';
           return;
         }
-      } catch (e) {
-        console.log('[Pitch Safe Fallback] Backend local não respondeu, acionando fallback estruturado de alta fidelidade.');
+      } catch (e) {}
+
+      // 2. Se o usuário configurou uma chave direta no navegador (localStorage)
+      const browserKey = localStorage.getItem('GEMINI_API_KEY');
+      if (browserKey) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${browserKey}`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                role: 'user',
+                parts: [{
+                  text: `Você é o assistente jurídico da Rede Sampa Trans (SUS SP). Responda em JSON com as chaves: titulo, categoria, base_legal, resumo_executivo, pontos_chave (array de 3 strings), acao_recomendada. Pergunta: "${query}"`
+                }]
+              }],
+              generationConfig: { temperature: 0.3, responseMimeType: 'application/json' }
+            })
+          });
+          if (res.ok) {
+            const payload = await res.json();
+            const parsed = JSON.parse(payload.candidates[0].content.parts[0].text);
+            renderAIResult(parsed, 'Gemini 2.5 Flash • Live');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            card.style.opacity = '1';
+            return;
+          }
+        } catch (e) {}
       }
 
-      // Simulação rápida de 600ms com os dados estruturados do agente
+      // 3. Fallback Inteligente Multi-Tópico (Funciona mesmo 100% offline sem servidor)
       setTimeout(() => {
-        let result = { ...LOCAL_AI_DATA };
-        if (query.toLowerCase().includes('cartório') || query.toLowerCase().includes('retificação')) {
-          result.titulo = "Retificação de Prenome e Gênero nos Cartórios de SP";
-          result.base_legal = "ADI 4275 (STF) • Provimento nº 73 do CNJ";
-          result.resumo_executivo = "Direito garantido em qualquer Cartório de Registro Civil das Pessoas Naturais (RCPN) sem necessidade de autorização judicial, cirurgia ou laudo médico.";
-          result.pontos_chave = [
-            "Gratuidade total garantida por lei mediante simples declaração de hipossuficiência assinada.",
-            "Não pode ser exigida nenhuma testemunha ou laudo psiquiátrico pelo oficial do cartório.",
-            "A certidão retificada tem o mesmo valor legal e não traz anotações discriminatórias públicas."
-          ];
-          result.acao_recomendada = "Compareça a qualquer RCPN de SP ou agende orientação com a Defensoria Pública.";
-        }
-        renderAIResult(result);
+        const smartResult = getSmartLocalFallback(query);
+        renderAIResult(smartResult, `Síntese SUS • ${smartResult.categoria}`);
         btn.innerHTML = originalText;
         btn.disabled = false;
-      }, 600);
+        card.style.opacity = '1';
+      }, 450);
     }
 
-    function renderAIResult(data) {
+    function renderAIResult(data, badgeLabel) {
+      if (badgeLabel) {
+        document.getElementById('ai-card-badge').textContent = badgeLabel;
+      }
       document.getElementById('ai-card-title').textContent = data.titulo;
       document.getElementById('ai-card-law').textContent = data.base_legal;
       document.getElementById('ai-card-summary').textContent = data.resumo_executivo;
-      document.getElementById('ai-card-action').textContent = 'Ação: ' + data.acao_recomendada;
+      document.getElementById('ai-card-action').innerHTML = '<strong>Próximo passo:</strong> ' + data.acao_recomendada;
 
       const pointsContainer = document.getElementById('ai-card-points');
       pointsContainer.innerHTML = '';
-      data.pontos_chave.forEach(p => {
+      (data.pontos_chave || []).forEach(p => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2';
         li.innerHTML = `<span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span><span>${p}</span>`;
@@ -932,12 +1114,16 @@
     }
 
     function copyAIText() {
+      const title = document.getElementById('ai-card-title').textContent;
       const summary = document.getElementById('ai-card-summary').textContent;
-      navigator.clipboard.writeText(summary);
+      navigator.clipboard.writeText(`${title}\n\n${summary}`);
       alert('Síntese jurídica copiada para a área de transferência!');
     }
 
-    window.onload = initLeafletMap;
+    window.onload = function() {
+      initLeafletMap();
+      checkAIServerStatus();
+    };
   </script>
 </body>
 </html>

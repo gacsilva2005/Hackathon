@@ -444,7 +444,7 @@
               </span>
               <button onclick="configureBrowserApiKey()" id="ai-status-badge" class="text-[10px] text-status-green bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 hover:bg-emerald-100 transition-all" title="Clique para ver status ou configurar chave">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" id="ai-status-dot"></span>
-                <span id="ai-status-text">Gemini 2.5 Flash</span>
+                <span id="ai-status-text">Gemini 3.5 Flash Lite</span>
               </button>
             </div>
             
@@ -1381,8 +1381,8 @@
         });
         if (res.ok) {
           const data = await res.json();
-          renderAIResult(data, `Gemini Live (${data.modelo_utilizado || 'API Real'})`);
-          document.getElementById('ai-status-text').textContent = 'Gemini 2.5 Flash • Online';
+          renderAIResult(data, `Gemini Live (${data.modelo_utilizado || 'Gemini 3.5 Flash Lite'})`);
+          document.getElementById('ai-status-text').textContent = (data.modelo_utilizado || 'Gemini 3.5 Flash Lite') + ' • Online';
           btn.innerHTML = originalText;
           btn.disabled = false;
           card.style.opacity = '1';
@@ -1392,31 +1392,33 @@
 
       const browserKey = localStorage.getItem('GEMINI_API_KEY');
       if (browserKey) {
-        try {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${browserKey}`;
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                role: 'user',
-                parts: [{
-                  text: `Você é o assistente jurídico da Rede Sampa Trans (SUS SP). Responda em JSON com as chaves: titulo, categoria, base_legal, resumo_executivo, pontos_chave (array de 3 strings), acao_recomendada. Pergunta: "${query}"`
-                }]
-              }],
-              generationConfig: { temperature: 0.3, responseMimeType: 'application/json' }
-            })
-          });
-          if (res.ok) {
-            const payload = await res.json();
-            const parsed = JSON.parse(payload.candidates[0].content.parts[0].text);
-            renderAIResult(parsed, 'Gemini 2.5 Flash • Live');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            card.style.opacity = '1';
-            return;
-          }
-        } catch (e) {}
+        for (const modelName of ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash']) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${browserKey}`;
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  role: 'user',
+                  parts: [{
+                    text: `Você é o assistente jurídico da Rede Sampa Trans (SUS SP). Responda em JSON com as chaves: titulo, categoria, base_legal, resumo_executivo, pontos_chave (array de 3 strings), acao_recomendada. Pergunta: "${query}"`
+                  }]
+                }],
+                generationConfig: { temperature: 0.3, responseMimeType: 'application/json' }
+              })
+            });
+            if (res.ok) {
+              const payload = await res.json();
+              const parsed = JSON.parse(payload.candidates[0].content.parts[0].text);
+              renderAIResult(parsed, `${modelName} • Live`);
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              card.style.opacity = '1';
+              return;
+            }
+          } catch (e) {}
+        }
       }
 
       setTimeout(() => {

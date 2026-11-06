@@ -84,20 +84,20 @@
       <section id="screen-map" class="screen-panel relative flex-1 flex flex-col h-full overflow-hidden">
         <!-- Header Flutuante de Busca do Mapa -->
         <div class="absolute top-3 left-3 right-3 z-20 space-y-2">
-          <div class="flex items-center bg-white/95 backdrop-blur-md border border-[#D6C2AC] rounded-full px-3.5 h-12 shadow-md">
+          <div onclick="showScreen('screen-search')" class="cursor-pointer flex items-center bg-white/95 backdrop-blur-md border border-[#D6C2AC] rounded-full px-3.5 h-12 shadow-md hover:border-slate-400 transition-all">
             <svg class="w-4 h-4 text-slate-700 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" placeholder="Buscar UBS, PrEP, acolhimento, endereço..." class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-[11px] font-bold text-slate-700 shrink-0">
+            <span class="text-xs font-semibold text-slate-500 flex-1 select-none">Buscar UBS, PrEP, acolhimento, endereço...</span>
+            <button onclick="event.stopPropagation(); toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[11px] font-bold text-slate-700 shrink-0">
               🛡️ Modo Seguro
             </button>
           </div>
 
           <!-- Pílulas de Filtros Rápidos sobre o Mapa -->
           <div class="flex gap-1.5 overflow-x-auto hide-scrollbar text-xs">
-            <span class="px-3 py-1.5 rounded-full bg-[#0B192C] text-white font-bold shrink-0 shadow-xs">Todos os Serviços</span>
-            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Saúde SUS (Sampa Trans)</span>
-            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Acolhimento & Abrigo</span>
-            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Segurança / Delegacias</span>
+            <button onclick="showScreen('screen-map')" class="px-3 py-1.5 rounded-full bg-[#0B192C] text-white font-bold shrink-0 shadow-xs">Todos os Serviços</button>
+            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Saúde SUS (Sampa Trans)</button>
+            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Acolhimento & Abrigo</button>
+            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Segurança / Delegacias</button>
           </div>
         </div>
 
@@ -166,7 +166,7 @@
       <section id="screen-details" class="screen-panel hidden min-h-full pb-20">
         <!-- Header Unificado 56px -->
         <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
-          <button onclick="showScreen('screen-map')" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800">
+          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           </button>
           <div class="text-center">
@@ -175,7 +175,7 @@
           </div>
           <div class="flex items-center gap-2">
             <button class="text-slate-500 hover:text-amber-500 text-sm">🔖</button>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700">
+            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
               🛡️ Disfarçar
             </button>
           </div>
@@ -262,15 +262,15 @@
             </div>
 
             <!-- Callout Descobrir UBS -->
-            <button onclick="prompt('Digite seu CEP para localizar sua UBS de referência:')" class="w-full bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#E5DDD2] rounded-xl p-3 flex items-center justify-between text-left text-xs">
+            <button onclick="showScreen('screen-search')" class="w-full bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#E5DDD2] rounded-xl p-3 flex items-center justify-between text-left text-xs transition-all cursor-pointer">
               <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-white border border-[#DDD3C5] flex items-center justify-center">⌖</div>
+                <div class="w-8 h-8 rounded-lg bg-white border border-[#DDD3C5] flex items-center justify-center font-bold text-slate-700">⌖</div>
                 <div>
                   <b class="text-slate-900 block">Descobrir minha UBS de referência</b>
-                  <span class="text-slate-500 text-[11px]">Localize a unidade mais próxima por endereço ou CEP</span>
+                  <span class="text-slate-500 text-[11px]">Localize a unidade mais próxima para acolhimento na porta aberta</span>
                 </div>
               </div>
-              <span class="text-slate-400">→</span>
+              <span class="text-slate-400 font-bold">→</span>
             </button>
           </div>
 
@@ -338,11 +338,11 @@
         <!-- Header da Busca -->
         <div class="bg-white px-4 pt-2 pb-3.5 border-b border-[#E2D9CF] sticky top-0 z-30">
           <div class="flex items-center justify-between mb-2.5">
-            <button onclick="showScreen('screen-map')" class="p-1 text-slate-700 hover:text-black">
+            <button onclick="goBack()" class="p-1 text-slate-700 hover:text-black transition-all" title="Voltar para a tela anterior">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             </button>
             <span class="text-sm font-extrabold uppercase tracking-wider text-slate-900">BUSCA & FILTROS</span>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700">
+            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
               🛡️ Disfarçar
             </button>
           </div>
@@ -814,6 +814,8 @@
   <!-- SCRIPT DE INICIALIZAÇÃO DO MAPA E CONTROLE DAS 5 TELAS -->
   <script>
     let mapInitialized = false;
+    let currentScreen = 'screen-map';
+    const screenHistory = [];
 
     function initLeafletMap() {
       if (mapInitialized) return;
@@ -827,25 +829,43 @@
           maxZoom: 19
         }).addTo(map);
 
-        // Marcador UBS República
-        L.circleMarker([-23.5489, -46.6388], {
+        // Marcador UBS República (Porta Aberta)
+        const markerRep = L.circleMarker([-23.5489, -46.6388], {
           radius: 9,
           fillColor: '#0284C7',
           color: '#FFFFFF',
           weight: 2.5,
           opacity: 1,
           fillOpacity: 1
-        }).addTo(map).bindPopup('<b>UBS República</b><br>450m • Porta Aberta');
+        }).addTo(map);
+        
+        markerRep.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 170px;">
+            <b style="color: #0F172A; font-size: 13px;">UBS República</b><br>
+            <span style="color: #16A34A; font-weight: 700;">● Aberto até 19h</span> • 450m<br>
+            <span style="color: #64748B; font-size: 11px;">Porta Aberta: Testes Rápidos & PrEP</span>
+          </div>
+        `);
 
-        // Marcador CR POP TT Janaina Lima
-        L.circleMarker([-23.5321, -46.6450], {
-          radius: 9,
+        // Marcador CR POP TT Janaina Lima (Especializado)
+        const markerJanaina = L.circleMarker([-23.5321, -46.6450], {
+          radius: 10,
           fillColor: '#0B192C',
           color: '#FFFFFF',
-          weight: 2.5,
+          weight: 3,
           opacity: 1,
           fillOpacity: 1
-        }).addTo(map).bindPopup('<b>CR POP TT Janaina Lima</b><br>1.8km • Especializado');
+        }).addTo(map);
+
+        markerJanaina.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 190px;">
+            <b style="color: #0F172A; font-size: 13px;">CR POP TT Janaina Lima</b><br>
+            <span style="color: #0284C7; font-weight: 700;">Ambulatório Especializado TT</span> • 1.8km<br>
+            <button onclick="showScreen('screen-details')" style="margin-top: 6px; padding: 4px 10px; background: #0B192C; color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; width: 100%;">
+              Ver Fluxo Clínico SUS →
+            </button>
+          </div>
+        `);
 
         mapInitialized = true;
       } catch (e) {
@@ -853,7 +873,16 @@
       }
     }
 
-    function showScreen(screenId) {
+    function showScreen(screenId, addToHistory = true) {
+      if (screenId === currentScreen && document.getElementById(screenId) && !document.getElementById(screenId).classList.contains('hidden')) {
+        return;
+      }
+
+      if (addToHistory && currentScreen && currentScreen !== screenId) {
+        screenHistory.push(currentScreen);
+      }
+      currentScreen = screenId;
+
       // Oculta todos os painéis
       document.querySelectorAll('.screen-panel').forEach(p => p.classList.add('hidden'));
       const active = document.getElementById(screenId);
@@ -897,9 +926,18 @@
         }
       }
 
-      // Se for o mapa, inicializa o Leaflet
+      // Se for o mapa, inicializa o Leaflet ou ajusta tamanho
       if (screenId === 'screen-map') {
         setTimeout(initLeafletMap, 50);
+      }
+    }
+
+    function goBack() {
+      if (screenHistory.length > 0) {
+        const prev = screenHistory.pop();
+        showScreen(prev, false);
+      } else {
+        showScreen('screen-map', false);
       }
     }
 

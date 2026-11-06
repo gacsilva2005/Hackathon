@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Preview — UBS Finder (Rede & Mapa)</title>
 
-  <!-- Leaflet CSS & JS (Mapa interativo real sem baixar nada) -->
+  <!-- Leaflet (OpenStreetMap) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,15 +19,13 @@
 
   <style>
     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+      box-sizing: border-box; margin: 0; padding: 0;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: #0f172a;
+      background: #0f172a;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -35,8 +33,8 @@
       padding: 16px;
     }
 
-    /* Moldura estilo Smartphone moderno */
-    .phone-container {
+    /* ——— Phone Frame ——— */
+    .phone {
       width: 100%;
       max-width: 412px;
       height: 870px;
@@ -44,911 +42,896 @@
       border-radius: 44px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 10px #1e293b;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,.6), 0 0 0 10px #1e293b;
       display: flex;
       flex-direction: column;
     }
 
-    /* Dynamic Island / Notch */
+    /* Dynamic Island */
     .notch {
-      position: absolute;
-      top: 10px;
-      left: 50%;
+      position: absolute; top: 10px; left: 50%;
       transform: translateX(-50%);
-      width: 110px;
-      height: 24px;
-      background: #000000;
-      border-radius: 20px;
-      z-index: 1000;
+      width: 110px; height: 24px;
+      background: #000; border-radius: 20px; z-index: 1000;
     }
 
-    /* MAPA (ocupa o fundo superior e meio) */
+    /* ——— Mapa ——— */
     #map {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      background: #e5e7eb;
+      position: absolute; inset: 0; z-index: 1; background: #e5e7eb;
     }
 
-    /* OVERLAY SUPERIOR: Busca + Filtros */
+    /* ——— Overlay Superior ——— */
     .top-overlay {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      right: 0;
-      z-index: 500;
-      padding: 10px 14px 4px 14px;
+      position: absolute; top: 40px; left: 0; right: 0;
+      z-index: 500; padding: 10px 14px 4px;
       pointer-events: none;
     }
-
-    .top-overlay > * {
-      pointer-events: auto;
-    }
+    .top-overlay > * { pointer-events: auto; }
 
     /* Barra de Busca */
+    .search-row {
+      display: flex; gap: 8px; align-items: center;
+    }
     .search-box {
-      background: #ffffff;
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      padding: 6px 6px 6px 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .search-box input {
-      border: none;
-      outline: none;
       flex: 1;
-      font-size: 13px;
-      color: #1e293b;
-      padding-left: 8px;
-      font-weight: 500;
+      background: #fff; border-radius: 30px;
+      display: flex; align-items: center;
+      padding: 6px 6px 6px 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.06);
+      position: relative;
     }
+    .search-box input {
+      border: none; outline: none; flex: 1;
+      font-size: 13px; color: #1e293b; padding-left: 8px; font-weight: 500;
+    }
+    .search-box input::placeholder { color: #64748b; font-size: 12px; }
 
-    .search-box input::placeholder {
-      color: #64748b;
-      font-size: 12px;
+    /* Autocomplete Nominatim */
+    .autocomplete-list {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      border: 1px solid #e2e8f0; overflow: hidden;
+      display: none; z-index: 600;
     }
-
-    .disguise-btn {
-      background: #f1f5f9;
-      border: none;
-      outline: none;
-      border-radius: 20px;
-      padding: 6px 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 700;
-      color: #0f172a;
-      transition: background 0.2s;
-    }
-
-    .disguise-btn:hover {
-      background: #e2e8f0;
-    }
-
-    /* Filtros Horizontais */
-    .filter-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      margin-top: 10px;
-      padding-bottom: 4px;
-      scrollbar-width: none;
-    }
-    .filter-scroll::-webkit-scrollbar {
-      display: none;
-    }
-
-    .filter-pill {
-      background: #ffffff;
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 22px;
-      padding: 7px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #1e293b;
-      white-space: nowrap;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.2s;
-    }
-
-    .filter-pill.active {
-      background: #111827;
-      color: #ffffff;
-      border-color: #111827;
-    }
-
-    /* Botão flutuante de localização */
-    .location-fab {
-      position: absolute;
-      right: 16px;
-      top: 150px;
-      z-index: 500;
-      width: 42px;
-      height: 42px;
-      background: #ffffff;
-      border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.08);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    /* BOTTOM SHEET */
-    .bottom-sheet {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 60px;
-      height: 480px;
-      background: #ffffff;
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
-      z-index: 400;
-      display: flex;
-      flex-direction: column;
-      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .sheet-handle-area {
-      padding: 10px 0 6px 0;
-      display: flex;
-      justify-content: center;
-      cursor: grab;
-    }
-
-    .sheet-handle {
-      width: 44px;
-      height: 4px;
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-
-    .sheet-header {
-      padding: 6px 18px 12px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+    .autocomplete-list.open { display: block; }
+    .autocomplete-item {
+      padding: 10px 14px; font-size: 12px; color: #0f172a;
+      cursor: pointer; display: flex; align-items: flex-start; gap: 8px;
       border-bottom: 1px solid #f1f5f9;
     }
-
-    .sheet-title {
-      font-size: 14.5px;
-      font-weight: 800;
-      color: #0f172a;
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: #f8fafc; }
+    .autocomplete-item .ac-icon { margin-top: 1px; flex-shrink: 0; color: #64748b; }
+    .autocomplete-item .ac-name { font-weight: 600; }
+    .autocomplete-item .ac-sub { font-size: 10.5px; color: #64748b; margin-top: 1px; }
+    .search-loading {
+      padding: 12px 14px; font-size: 12px; color: #64748b; text-align: center;
+    }
+    .search-empty {
+      padding: 12px 14px; font-size: 12px; color: #64748b; text-align: center;
     }
 
+    /* Botão Disfarçar */
+    .disguise-btn {
+      background: #f1f5f9; border: none; outline: none;
+      border-radius: 20px; padding: 8px 12px;
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; font-size: 11px; font-weight: 700; color: #0f172a;
+      white-space: nowrap; flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,.06);
+    }
+    .disguise-btn:hover { background: #e2e8f0; }
+
+    /* Filtros */
+    .filter-scroll {
+      display: flex; gap: 8px; overflow-x: auto;
+      margin-top: 10px; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      background: #fff; border: 1px solid rgba(0,0,0,.06);
+      border-radius: 22px; padding: 7px 14px;
+      font-size: 12px; font-weight: 600; color: #1e293b;
+      white-space: nowrap; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,.05);
+    }
+    .filter-pill.active { background: #111827; color: #fff; border-color: #111827; }
+
+    /* Botão de localização flutuante */
+    .location-fab {
+      position: absolute; right: 16px; top: 150px; z-index: 500;
+      width: 42px; height: 42px; background: #fff;
+      border-radius: 50%; border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .location-fab:hover { background: #f8fafc; }
+
+    /* ——— Bottom Sheet ——— */
+    .bottom-sheet {
+      position: absolute; left: 0; right: 0; bottom: 60px;
+      height: 420px; background: #fff;
+      border-top-left-radius: 28px; border-top-right-radius: 28px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,.12);
+      z-index: 400; display: flex; flex-direction: column;
+      transition: height .3s cubic-bezier(.16,1,.3,1);
+    }
+    .sheet-handle-area {
+      padding: 10px 0 6px; display: flex; justify-content: center; cursor: grab;
+    }
+    .sheet-handle { width: 44px; height: 4px; background: #cbd5e1; border-radius: 4px; }
+    .sheet-header {
+      padding: 4px 18px 12px; display: flex; justify-content: space-between;
+      align-items: flex-start; border-bottom: 1px solid #f1f5f9;
+    }
+    .sheet-title { font-size: 14.5px; font-weight: 800; color: #0f172a; }
     .sheet-sub {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 3px;
-      font-size: 11px;
-      color: #64748b;
-      font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 3px; font-size: 11px; color: #64748b; font-weight: 500;
     }
-
-    .status-dot-green {
-      width: 6px;
-      height: 6px;
-      background: #16a34a;
-      border-radius: 50%;
-    }
-
+    .dot-green { width: 6px; height: 6px; background: #16a34a; border-radius: 50%; }
     .region-badge {
-      background: #f1f5f9;
-      color: #475569;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 8px;
+      background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 8px; white-space: nowrap;
     }
-
-    /* Lista de Cards com Scroll suave */
     .cards-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px 16px 20px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      flex: 1; overflow-y: auto; padding: 12px 14px 20px;
+      display: flex; flex-direction: column; gap: 12px;
       scrollbar-width: thin;
     }
 
-    /* Card da UBS */
+    /* ——— UBS Card ——— */
     .ubs-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: all 0.2s;
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 18px; padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      cursor: pointer; transition: all .15s;
     }
-
-    .ubs-card.selected {
-      border-color: #2563eb;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
-    }
-
-    .ubs-card-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 8px;
-    }
-
-    /* Badge de status (Porta Aberta vs Encaminhamento) */
+    .ubs-card.selected { border-color: #2563eb; box-shadow: 0 4px 14px rgba(37,99,235,.15); }
+    .ubs-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .ubs-card-title { font-size: 13.5px; font-weight: 800; color: #0f172a; margin-bottom: 7px; }
     .badge-open {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #dcfce7;
-      color: #15803d;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 16px;
-      margin-bottom: 8px;
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 16px; margin-bottom: 7px;
     }
-
     .badge-warn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #fef3c7;
-      color: #b45309;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 16px;
-      margin-bottom: 8px;
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #fef3c7; color: #b45309; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 16px; margin-bottom: 7px;
     }
-
     .meta-line {
-      font-size: 12px;
-      color: #64748b;
-      margin-bottom: 10px;
-      line-height: 1.4;
+      font-size: 12px; color: #64748b; margin-bottom: 9px; line-height: 1.4;
     }
-
-    .meta-line strong {
-      color: #0f172a;
-    }
-
-    /* Alerta Linha de Cuidado */
+    .meta-line strong { color: #0f172a; }
     .care-line-box {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 11.5px;
-      color: #78350f;
-      line-height: 1.4;
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+      padding: 9px 11px; display: flex; gap: 8px; margin-bottom: 9px;
+      font-size: 11px; color: #78350f; line-height: 1.4;
     }
-
-    .care-line-box svg {
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    /* Tags */
-    .tags-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .tag {
-      font-size: 11px;
-      padding: 4px 9px;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-
-    .tag-blue {
-      background: #e0f2fe;
-      color: #0369a1;
-    }
-
-    .tag-gray {
-      background: #f1f5f9;
-      color: #475569;
-    }
-
-    /* Botões de Ação */
+    .tags-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tag { font-size: 11px; padding: 4px 9px; border-radius: 6px; font-weight: 600; }
+    .tag-blue { background: #e0f2fe; color: #0369a1; }
+    .tag-gray { background: #f1f5f9; color: #475569; }
     .card-actions {
-      display: flex;
-      gap: 10px;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 12px;
+      display: flex; gap: 8px; border-top: 1px solid #f1f5f9; padding-top: 10px;
     }
-
     .btn {
-      flex: 1;
-      height: 38px;
-      border-radius: 10px;
-      font-size: 12.5px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.2s;
+      flex: 1; height: 36px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      gap: 5px; cursor: pointer; border: none;
     }
+    .btn:hover { opacity: .88; }
+    .btn-outline { background: #fff; border: 1px solid #e2e8f0; color: #0f172a; }
+    .btn-dark { background: #111827; color: #fff; }
+    .btn-gray { background: #f1f5f9; color: #1e293b; }
 
-    .btn:hover {
-      opacity: 0.9;
+    /* ——— Marcadores do Leaflet ——— */
+    .marker-wrap { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .marker-pill {
+      background: #fff; padding: 3px 8px; border-radius: 12px;
+      border: 1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,.15);
+      font-size: 10px; font-weight: 700; color: #0f172a;
+      display: flex; align-items: center; gap: 4px; white-space: nowrap;
     }
-
-    .btn-outline {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      color: #0f172a;
+    .marker-pill.selected { border-color: #2563eb; border-width: 2px; }
+    .marker-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .marker-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #93c5fd; border: 2.5px solid #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,.2);
+      display: flex; align-items: center; justify-content: center;
+      margin: 3px auto 0; font-size: 17px; color: #1d4ed8;
     }
+    .marker-circle.selected { background: #3b82f6; transform: scale(1.15); }
+    .marker-circle.popttt { background: #fde68a; color: #b45309; }
 
-    .btn-dark {
-      background: #111827;
-      color: #ffffff;
-    }
-
-    .btn-gray {
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-
-    /* BOTTOM TAB NAVIGATION */
-    .bottom-nav {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background: #ffffff;
-      border-top: 1px solid #f1f5f9;
-      z-index: 500;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0 10px;
-    }
-
-    .nav-tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 10.5px;
-      font-weight: 600;
-      color: #94a3b8;
-      cursor: pointer;
-    }
-
-    .nav-tab.active {
-      color: #0f172a;
-    }
-
-    /* Custom Leaflet Markers */
-    .marker-label-pill {
-      background: #ffffff;
-      padding: 3px 8px;
-      border-radius: 12px;
-      border: 1px solid #cbd5e1;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-    }
-
-    .marker-pin-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #93c5fd;
-      border: 2px solid #ffffff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #1d4ed8;
-      margin: 3px auto 0 auto;
-    }
-
-    /* Marcador do Usuário */
-    .user-loc-wrapper {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
+    /* Marcador Usuário */
+    .user-wrap { display: flex; flex-direction: column; align-items: center; }
     .user-pulse {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: rgba(30, 41, 59, 0.2);
-      animation: pulse 1.6s infinite ease-out;
-      position: absolute;
-      top: -6px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(15,23,42,.18); animation: pulse 1.6s infinite ease-out;
+      position: absolute; top: -7px;
     }
-
-    .user-dot {
-      width: 14px;
-      height: 14px;
-      background: #0f172a;
-      border: 2.5px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      position: relative;
-      z-index: 2;
+    .user-core {
+      width: 14px; height: 14px; background: #0f172a;
+      border: 2.5px solid #fff; border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,.35); position: relative; z-index: 2;
     }
-
-    .user-tag {
-      background: #0f172a;
-      color: #ffffff;
-      font-size: 9px;
-      font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 10px;
-      margin-top: 4px;
-      white-space: nowrap;
+    .user-label {
+      background: #0f172a; color: #fff; font-size: 9px; font-weight: 800;
+      padding: 2px 7px; border-radius: 10px; margin-top: 4px; white-space: nowrap;
     }
-
     @keyframes pulse {
-      0% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(2.2); opacity: 0; }
+      0%  { transform: scale(.9); opacity: 1; }
+      100%{ transform: scale(2.4); opacity: 0; }
     }
 
-    /* MODAL DISFARÇAR (Calculadora Discreta) */
+    /* ——— Bottom Navigation ——— */
+    .bottom-nav {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+      background: #fff; border-top: 1px solid #f1f5f9; z-index: 500;
+      display: flex; justify-content: space-around; align-items: center; padding: 0 10px;
+    }
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 10.5px; font-weight: 600; color: #94a3b8; cursor: pointer;
+    }
+    .nav-tab.active { color: #0f172a; }
+
+    /* ——— Modal Calculadora ——— */
     .calc-modal {
-      position: absolute;
-      inset: 0;
-      background: #000000;
-      z-index: 2000;
-      display: none;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 20px 16px 28px 16px;
+      position: absolute; inset: 0; background: #000;
+      z-index: 2000; display: none; flex-direction: column;
+      justify-content: flex-end; padding: 20px 16px 28px;
     }
-
-    .calc-modal.open {
-      display: flex;
-    }
-
-    .calc-top-bar {
-      position: absolute;
-      top: 36px;
-      right: 18px;
-    }
-
+    .calc-modal.open { display: flex; }
+    .calc-top-bar { position: absolute; top: 36px; right: 18px; }
     .calc-exit-btn {
-      background: #262626;
-      color: #94a3b8;
-      border: none;
-      border-radius: 14px;
-      padding: 6px 14px;
-      font-size: 11.5px;
-      font-weight: 600;
-      cursor: pointer;
+      background: #262626; color: #94a3b8; border: none;
+      border-radius: 14px; padding: 6px 14px; font-size: 11.5px;
+      font-weight: 600; cursor: pointer;
     }
-
     .calc-display {
-      color: #ffffff;
-      font-size: 56px;
-      font-weight: 300;
-      text-align: right;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      word-break: break-all;
+      color: #fff; font-size: 56px; font-weight: 300;
+      text-align: right; padding: 10px 14px; margin-bottom: 14px; word-break: break-all;
     }
-
-    .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
+    .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .calc-key {
-      height: 64px;
-      border-radius: 50%;
-      border: none;
-      background: #333333;
-      color: #ffffff;
-      font-size: 24px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 64px; border-radius: 50%; border: none;
+      background: #333; color: #fff; font-size: 24px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
+    .calc-key.op { background: #f59e0b; }
+    .calc-key.fn { background: #a3a3a3; color: #000; }
+    .calc-key.zero { grid-column: span 2; border-radius: 35px; justify-content: flex-start; padding-left: 26px; }
 
-    .calc-key.op {
-      background: #f59e0b;
-      color: #ffffff;
-    }
-
-    .calc-key.fn {
-      background: #a3a3a3;
-      color: #000000;
-    }
-
-    .calc-key.zero {
-      grid-column: span 2;
-      border-radius: 35px;
-      justify-content: flex-start;
-      padding-left: 26px;
+    /* ——— Nominatim pin de resultado ——— */
+    .nominatim-marker {
+      background: #6366f1; color: #fff; padding: 4px 10px;
+      border-radius: 12px; font-size: 11px; font-weight: 700;
+      white-space: nowrap; box-shadow: 0 3px 10px rgba(99,102,241,.4);
     }
   </style>
 </head>
 <body>
 
-  <div class="phone-container">
-    <div class="notch"></div>
+<div class="phone">
+  <div class="notch"></div>
 
-    <!-- MAPA -->
-    <div id="map"></div>
+  <!-- MAPA -->
+  <div id="map"></div>
 
-    <!-- BOTÃO DE LOCALIZAÇÃO FLUTUANTE -->
-    <button class="location-fab" onclick="recenterMap()" title="Minha Localização">
-      <i data-lucide="crosshair" style="width: 20px; height: 20px; color: #1e293b;"></i>
-    </button>
+  <!-- BOTÃO LOCALIZAÇÃO -->
+  <button class="location-fab" onclick="recenterMap()" title="Minha Localização">
+    <i data-lucide="crosshair" style="width:20px;height:20px;color:#1e293b;"></i>
+  </button>
 
-    <!-- OVERLAY SUPERIOR: Busca e Filtros -->
-    <div class="top-overlay">
-      <div class="search-box">
-        <i data-lucide="search" style="width: 17px; height: 17px; color: #475569;"></i>
-        <input type="text" id="searchInput" placeholder="Buscar UBS, PrEP, acolhimento, endereço..." oninput="handleSearch(this.value)" />
-        <button class="disguise-btn" onclick="toggleDisguise(true)">
-          <i data-lucide="shield" style="width: 13px; height: 13px;"></i>
-          Disfarçar
-        </button>
+  <!-- OVERLAY SUPERIOR -->
+  <div class="top-overlay">
+    <div class="search-row">
+      <div class="search-box" id="searchBox">
+        <i data-lucide="search" style="width:17px;height:17px;color:#475569;flex-shrink:0;"></i>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Buscar UBS, endereço, bairro..."
+          oninput="onSearchInput(this.value)"
+          onblur="setTimeout(closeAutocomplete, 200)"
+          autocomplete="off"
+        />
+        <!-- Lista Autocomplete Nominatim -->
+        <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
-
-      <div class="filter-scroll">
-        <button class="filter-pill active" onclick="setFilter(this, 'all')">Todos os Serviços</button>
-        <button class="filter-pill" onclick="setFilter(this, 'sampa_trans')">Saúde SUS (Sampa Trans)</button>
-        <button class="filter-pill" onclick="setFilter(this, 'acolhimento')">Acolhimento & Escuta</button>
-        <button class="filter-pill" onclick="setFilter(this, 'prep')">PrEP / PEP</button>
-        <button class="filter-pill" onclick="setFilter(this, 'testes')">Testagem Rápida</button>
-      </div>
+      <button class="disguise-btn" onclick="toggleDisguise(true)">
+        <i data-lucide="shield" style="width:13px;height:13px;"></i>
+        Disfarçar
+      </button>
     </div>
 
-    <!-- BOTTOM SHEET COM CARDS -->
-    <div class="bottom-sheet" id="bottomSheet">
-      <div class="sheet-handle-area" onclick="toggleSheetExpansion()">
-        <div class="sheet-handle"></div>
-      </div>
-
-      <div class="sheet-header">
-        <div>
-          <div class="sheet-title">Mais Próximos de Você (São Paulo)</div>
-          <div class="sheet-sub">
-            <span class="status-dot-green"></span>
-            <span id="unitsCount">2 unidades verificadas com atendimento hoje</span>
-          </div>
-        </div>
-        <div class="region-badge">CRS Centro</div>
-      </div>
-
-      <div class="cards-list" id="cardsContainer">
-        <!-- Card 1: UBS República -->
-        <div class="ubs-card selected" id="card-1" onclick="focusUBS(1)">
-          <div class="ubs-card-title">UBS República - Fernanda Sante Limeira</div>
-          <div class="badge-open">
-            <i data-lucide="check-circle-2" style="width: 13px; height: 13px;"></i>
-            Porta Aberta: Testes Rápidos & PrEP
-          </div>
-          <div class="meta-line">
-            Praça do Patriarca, 100 • <strong>450m de você</strong> • Aberto até 19h
-          </div>
-          <div class="tags-row">
-            <span class="tag tag-blue">Rede Sampa Trans</span>
-            <span class="tag tag-gray">Nome Social Garantido</span>
-            <span class="tag tag-gray">Profilaxia PEP</span>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-outline" onclick="callPhone('1131234567')">
-              <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
-              Ligar
-            </button>
-            <button class="btn btn-dark" onclick="openDirections(-23.5489, -46.6388)">
-              <i data-lucide="navigation" style="width: 14px; height: 14px;"></i>
-              Como Chegar
-            </button>
-          </div>
-        </div>
-
-        <!-- Card 2: CR POP TT -->
-        <div class="ubs-card" id="card-2" onclick="focusUBS(2)">
-          <div class="ubs-card-title">CR POP TT Janaina Lima - Bom Retiro</div>
-          <div class="badge-warn">
-            <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
-            Exige Encaminhamento Prévio
-          </div>
-          <div class="meta-line">
-            Rua Jaraguá, 866 • <strong>1.8 km de você</strong> • Seg a Sex até 19h
-          </div>
-
-          <div class="care-line-box">
-            <i data-lucide="git-fork" style="width: 16px; height: 16px; color: #b45309;"></i>
-            <div>
-              <strong>Linha de Cuidado:</strong> Início da hormonização exige acolhimento prévio na UBS de referência do seu bairro.
-            </div>
-          </div>
-
-          <div class="tags-row">
-            <span class="tag tag-blue">Ambulatório TT Especializado</span>
-            <span class="tag tag-gray">Processo Transexualizador</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn btn-outline" onclick="alert('Linha de cuidado da População Travesti e Transexual da Cidade de SP.')">
-              <i data-lucide="git-branch" style="width: 14px; height: 14px;"></i>
-              Ver Fluxo
-            </button>
-            <button class="btn btn-gray" onclick="focusUBS(2)">
-              <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
-              Ver no Mapa
-            </button>
-          </div>
-        </div>
-      </div>
+    <div class="filter-scroll">
+      <button class="filter-pill active" onclick="setFilter(this,'all')">Todos os Serviços</button>
+      <button class="filter-pill" onclick="setFilter(this,'sampa_trans')">Saúde SUS (Sampa Trans)</button>
+      <button class="filter-pill" onclick="setFilter(this,'acolhimento')">Acolhimento &amp; Escuta</button>
+      <button class="filter-pill" onclick="setFilter(this,'prep')">PrEP / PEP</button>
+      <button class="filter-pill" onclick="setFilter(this,'testagem')">Testagem Rápida</button>
     </div>
-
-    <!-- BOTTOM TAB NAVIGATION -->
-    <div class="bottom-nav">
-      <div class="nav-tab active">
-        <i data-lucide="map" style="width: 21px; height: 21px;"></i>
-        <span>Rede & Mapa</span>
-      </div>
-      <div class="nav-tab" onclick="alert('Aba Direitos & IA: Guia de garantias legais, denúncias e acolhimento.')">
-        <i data-lucide="scale" style="width: 21px; height: 21px;"></i>
-        <span>Direitos & IA</span>
-      </div>
-      <div class="nav-tab" onclick="alert('Aba Capacitação: Cursos e trilhas de formação em saúde.')">
-        <i data-lucide="graduation-cap" style="width: 21px; height: 21px;"></i>
-        <span>Capacitação</span>
-      </div>
-    </div>
-
-    <!-- MODAL CALCULADORA (MODO DISFARÇAR) -->
-    <div class="calc-modal" id="calcModal">
-      <div class="calc-top-bar">
-        <button class="calc-exit-btn" onclick="toggleDisguise(false)">✕ Voltar ao app</button>
-      </div>
-      <div class="calc-display" id="calcDisplay">0</div>
-      <div class="calc-grid">
-        <button class="calc-key fn" onclick="calcKey('C')">C</button>
-        <button class="calc-key fn" onclick="calcKey('+/-')">±</button>
-        <button class="calc-key fn" onclick="calcKey('%')">%</button>
-        <button class="calc-key op" onclick="calcKey('/')">÷</button>
-
-        <button class="calc-key" onclick="calcKey('7')">7</button>
-        <button class="calc-key" onclick="calcKey('8')">8</button>
-        <button class="calc-key" onclick="calcKey('9')">9</button>
-        <button class="calc-key op" onclick="calcKey('*')">×</button>
-
-        <button class="calc-key" onclick="calcKey('4')">4</button>
-        <button class="calc-key" onclick="calcKey('5')">5</button>
-        <button class="calc-key" onclick="calcKey('6')">6</button>
-        <button class="calc-key op" onclick="calcKey('-')">-</button>
-
-        <button class="calc-key" onclick="calcKey('1')">1</button>
-        <button class="calc-key" onclick="calcKey('2')">2</button>
-        <button class="calc-key" onclick="calcKey('3')">3</button>
-        <button class="calc-key op" onclick="calcKey('+')">+</button>
-
-        <button class="calc-key zero" onclick="calcKey('0')">0</button>
-        <button class="calc-key" onclick="calcKey('.')">,</button>
-        <button class="calc-key op" onclick="calcKey('=')">=</button>
-      </div>
-    </div>
-
   </div>
 
-  <script>
-    // Inicialização dos ícones Lucide
-    lucide.createIcons();
-
-    // 1. INICIALIZAÇÃO DO MAPA (Leaflet com tiles limpos Positron)
-    const userCoords = [-23.5460, -46.6405];
-    const ubs1Coords = [-23.5489, -46.6388]; // UBS República
-    const ubs2Coords = [-23.5350, -46.6450]; // CR POP TT
-
-    const map = L.map('map', {
-      center: [-23.5420, -46.6410],
-      zoom: 15,
-      zoomControl: false,
-      attributionControl: false
-    });
-
-    // Tiles estilo minimalista cinza claro idêntico ao Google Maps do print
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19
-    }).addTo(map);
-
-    // 2. MARCADOR: "Você está aqui"
-    const userIcon = L.divIcon({
-      className: 'custom-user-marker',
-      html: `
-        <div class="user-loc-wrapper">
-          <div class="user-pulse"></div>
-          <div class="user-dot"></div>
-          <div class="user-tag">Você está aqui</div>
+  <!-- BOTTOM SHEET -->
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle-area" onclick="toggleSheet()">
+      <div class="sheet-handle"></div>
+    </div>
+    <div class="sheet-header">
+      <div>
+        <div class="sheet-title">Mais Próximos de Você (São Paulo)</div>
+        <div class="sheet-sub">
+          <span class="dot-green"></span>
+          <span id="unitsCount">4 unidades verificadas com atendimento hoje</span>
         </div>
-      `,
-      iconSize: [80, 50],
-      iconAnchor: [40, 16]
-    });
-    L.marker(userCoords, { icon: userIcon }).addTo(map);
+      </div>
+      <div class="region-badge">CRS Centro</div>
+    </div>
+    <div class="cards-list" id="cardsContainer"></div>
+  </div>
 
-    // 3. MARCADOR: UBS República
-    const ubs1Icon = L.divIcon({
-      className: 'custom-ubs-marker',
-      html: `
-        <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-          <div class="marker-label-pill">
-            <span style="width:6px; height:6px; background:#16a34a; border-radius:50%;"></span>
-            UBS República
-          </div>
-          <div class="marker-pin-circle">
-            <i data-lucide="plus" style="width: 18px; height: 18px; stroke-width: 3;"></i>
-          </div>
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-tab active">
+      <i data-lucide="map" style="width:21px;height:21px;"></i>
+      <span>Rede &amp; Mapa</span>
+    </div>
+    <div class="nav-tab" onclick="alert('Aba Direitos & IA: Guia de garantias legais, denúncias e acolhimento.')">
+      <i data-lucide="scale" style="width:21px;height:21px;"></i>
+      <span>Direitos &amp; IA</span>
+    </div>
+    <div class="nav-tab" onclick="alert('Aba Capacitação: Cursos e trilhas de formação em saúde.')">
+      <i data-lucide="graduation-cap" style="width:21px;height:21px;"></i>
+      <span>Capacitação</span>
+    </div>
+  </div>
+
+  <!-- MODAL CALCULADORA -->
+  <div class="calc-modal" id="calcModal">
+    <div class="calc-top-bar">
+      <button class="calc-exit-btn" onclick="toggleDisguise(false)">✕ Voltar ao app</button>
+    </div>
+    <div class="calc-display" id="calcDisplay">0</div>
+    <div class="calc-grid">
+      <button class="calc-key fn"  onclick="calcKey('C')">C</button>
+      <button class="calc-key fn"  onclick="calcKey('+/-')">±</button>
+      <button class="calc-key fn"  onclick="calcKey('%')">%</button>
+      <button class="calc-key op"  onclick="calcKey('/')">÷</button>
+      <button class="calc-key"     onclick="calcKey('7')">7</button>
+      <button class="calc-key"     onclick="calcKey('8')">8</button>
+      <button class="calc-key"     onclick="calcKey('9')">9</button>
+      <button class="calc-key op"  onclick="calcKey('*')">×</button>
+      <button class="calc-key"     onclick="calcKey('4')">4</button>
+      <button class="calc-key"     onclick="calcKey('5')">5</button>
+      <button class="calc-key"     onclick="calcKey('6')">6</button>
+      <button class="calc-key op"  onclick="calcKey('-')">-</button>
+      <button class="calc-key"     onclick="calcKey('1')">1</button>
+      <button class="calc-key"     onclick="calcKey('2')">2</button>
+      <button class="calc-key"     onclick="calcKey('3')">3</button>
+      <button class="calc-key op"  onclick="calcKey('+')">+</button>
+      <button class="calc-key zero" onclick="calcKey('0')">0</button>
+      <button class="calc-key"     onclick="calcKey('.')">‚</button>
+      <button class="calc-key op"  onclick="calcKey('=')">=</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+lucide.createIcons();
+
+// ═══════════════════════════════════════════════
+// 1. DADOS (espelha data/ubs-mock.ts)
+// ═══════════════════════════════════════════════
+const UBS_DATA = [
+  {
+    id: '1',
+    name: 'UBS República - Fernanda Sante Limeira',
+    shortName: 'UBS República',
+    address: 'Praça do Patriarca, 100',
+    distance: '450m de você',
+    hours: 'Aberto até 19h',
+    status: 'open',
+    statusLabel: 'Porta Aberta: Testes Rápidos & PrEP',
+    tags: ['Rede Sampa Trans', 'Nome Social Garantido', 'Profilaxia PEP'],
+    phone: '1131234567',
+    lat: -23.5489, lng: -46.6388,
+    isPopTT: false,
+    filters: ['all','sampa_trans','prep','testagem'],
+  },
+  {
+    id: '2',
+    name: 'CR POP TT Janaina Lima - Bom Retiro',
+    shortName: 'CR POP TT',
+    address: 'Rua Jaraguá, 866',
+    distance: '1.8km de você',
+    hours: 'Seg a Sex até 19h',
+    status: 'requires_referral',
+    statusLabel: 'Exige Encaminhamento Prévio',
+    tags: ['Ambulatório TT Especializado', 'Processo Transexualizador'],
+    careLineWarning: 'Início da hormonização exige acolhimento prévio na UBS de referência do seu bairro.',
+    lat: -23.5321, lng: -46.6450,
+    isPopTT: true,
+    filters: ['all','sampa_trans','acolhimento'],
+  },
+  {
+    id: '3',
+    name: 'UBS Campos Elíseos',
+    shortName: 'UBS Campos Elíseos',
+    address: 'Rua Helvétia, 40',
+    distance: '2.3km de você',
+    hours: 'Aberto até 17h',
+    status: 'open',
+    statusLabel: 'Porta Aberta',
+    tags: ['Nome Social Garantido', 'Testagem Rápida'],
+    phone: '1132567890',
+    lat: -23.5390, lng: -46.6480,
+    isPopTT: false,
+    filters: ['all','testagem'],
+  },
+  {
+    id: '4',
+    name: 'CRS Centro',
+    shortName: 'CRS Centro',
+    address: 'Rua Genebra, 71',
+    distance: '1.1km de você',
+    hours: 'Aberto até 18h',
+    status: 'requires_referral',
+    statusLabel: 'Exige Encaminhamento Prévio',
+    tags: ['Regulação', 'Especialidades'],
+    lat: -23.5440, lng: -46.6350,
+    isPopTT: true,
+    filters: ['all'],
+  },
+  {
+    id: '5',
+    name: 'UBS Santa Cecília',
+    shortName: 'UBS Santa Cecília',
+    address: 'Rua Vitorino Carmilo, 599',
+    distance: '1.4km de você',
+    hours: 'Aberto até 19h',
+    status: 'open',
+    statusLabel: 'Porta Aberta: Vacinação e Consultas',
+    tags: ['Acolhimento', 'Farmácia Básica', 'Saúde da Família'],
+    phone: '1138260111',
+    lat: -23.5332, lng: -46.6548,
+    isPopTT: false,
+    filters: ['all', 'acolhimento', 'testagem'],
+  },
+  {
+    id: '6',
+    name: 'UBS Sé',
+    shortName: 'UBS Sé',
+    address: 'Rua Frederico Alvarenga, 259',
+    distance: '1.2km de você',
+    hours: 'Aberto até 19h',
+    status: 'open',
+    statusLabel: 'Porta Aberta: Testagem & Acolhimento',
+    tags: ['Rede Sampa Trans', 'Consultório na Rua', 'PrEP / PEP'],
+    phone: '1131012920',
+    lat: -23.5515, lng: -46.6295,
+    isPopTT: false,
+    filters: ['all', 'sampa_trans', 'prep', 'testagem', 'acolhimento'],
+  },
+  {
+    id: '7',
+    name: 'UBS Humaitá',
+    shortName: 'UBS Humaitá',
+    address: 'Rua Humaitá, 518 - Bela Vista',
+    distance: '1.6km de você',
+    hours: 'Aberto até 18h',
+    status: 'open',
+    statusLabel: 'Porta Aberta',
+    tags: ['Acolhimento', 'Saúde Mental', 'Planejamento Familiar'],
+    phone: '1132420055',
+    lat: -23.5582, lng: -46.6433,
+    isPopTT: false,
+    filters: ['all', 'acolhimento'],
+  },
+  {
+    id: '8',
+    name: 'UBS Boracea - Barra Funda',
+    shortName: 'UBS Boracea',
+    address: 'Rua Boracea, 270',
+    distance: '2.8km de você',
+    hours: 'Aberto até 19h',
+    status: 'open',
+    statusLabel: 'Porta Aberta',
+    tags: ['Acolhimento PopRua', 'Testes Rápidos'],
+    phone: '1133932800',
+    lat: -23.5244, lng: -46.6582,
+    isPopTT: false,
+    filters: ['all', 'testagem', 'acolhimento'],
+  },
+];
+
+const USER_COORDS  = [-23.5450, -46.6400];
+const CENTER       = [-23.5430, -46.6420];
+let selectedId     = '1';
+let activeFilter   = 'all';
+let searchQuery    = '';
+let sheetExpanded  = false;
+
+// ═══════════════════════════════════════════════
+// 2. MAPA (Camada Neutra e Limpa - sem ícones de mercados, postos ou cemitérios)
+// ═══════════════════════════════════════════════
+const map = L.map('map', {
+  center: CENTER, zoom: 15,
+  zoomControl: false, attributionControl: false,
+});
+
+// Camada base minimalista (apenas traçado de vias, hidrografia e relevo urbano)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16,
+  attribution: 'Tiles &copy; Esri, OpenStreetMap contributors'
+}).addTo(map);
+
+// Camada de rótulos de ruas e bairros (sem ícones comerciais)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16,
+}).addTo(map);
+
+// — Marcador do usuário —
+const userIcon = L.divIcon({
+  className: '',
+  html: `<div class="user-wrap">
+           <div class="user-pulse"></div>
+           <div class="user-core"></div>
+           <div class="user-label">Você está aqui</div>
+         </div>`,
+  iconSize: [80, 46], iconAnchor: [40, 14],
+});
+L.marker(USER_COORDS, { icon: userIcon }).addTo(map);
+
+// — Fábrica de ícones UBS —
+function makeUBSIcon(ubs, selected) {
+  const dot   = ubs.isPopTT ? '#b45309' : '#16a34a';
+  const icon  = ubs.isPopTT ? '&#9881;' : '+';
+  return L.divIcon({
+    className: '',
+    html: `<div class="marker-wrap">
+             <div class="marker-pill ${selected ? 'selected' : ''}">
+               <span class="marker-dot" style="background:${dot}"></span>
+               ${ubs.shortName}
+             </div>
+             <div class="marker-circle ${selected ? 'selected' : ''} ${ubs.isPopTT ? 'popttt' : ''}">${icon}</div>
+           </div>`,
+    iconSize: [120, 58], iconAnchor: [60, 54],
+  });
+}
+
+// — Cria markers para todos os UBS —
+const leafletMarkers = {};
+UBS_DATA.forEach(ubs => {
+  const m = L.marker([ubs.lat, ubs.lng], { icon: makeUBSIcon(ubs, ubs.id === selectedId) })
+    .addTo(map)
+    .on('click', () => selectUBS(ubs.id));
+  leafletMarkers[ubs.id] = m;
+});
+
+// — Nominatim pin (resultado de geocoding) —
+let nominatimMarker = null;
+
+// ═══════════════════════════════════════════════
+// 3. SELEÇÃO DE UBS
+// ═══════════════════════════════════════════════
+function selectUBS(id) {
+  if (selectedId) {
+    const prev = UBS_DATA.find(u => u.id === selectedId);
+    if (prev) leafletMarkers[prev.id]?.setIcon(makeUBSIcon(prev, false));
+  }
+  selectedId = id;
+  const ubs = UBS_DATA.find(u => u.id === id);
+  if (ubs) {
+    leafletMarkers[id]?.setIcon(makeUBSIcon(ubs, true));
+    map.flyTo([ubs.lat, ubs.lng], 16, { duration: 0.7 });
+  }
+  // Destaca card
+  document.querySelectorAll('.ubs-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('card-' + id);
+  if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+}
+
+// ═══════════════════════════════════════════════
+// 4. RENDERIZAÇÃO DOS CARDS
+// ═══════════════════════════════════════════════
+function getVisibleUBS() {
+  return UBS_DATA.filter(u => {
+    const matchFilter = u.filters.includes(activeFilter);
+    const q = searchQuery.toLowerCase().trim();
+    const matchSearch = !q ||
+      u.name.toLowerCase().includes(q) ||
+      u.shortName.toLowerCase().includes(q) ||
+      u.address.toLowerCase().includes(q) ||
+      u.tags.some(t => t.toLowerCase().includes(q));
+    return matchFilter && matchSearch;
+  });
+}
+
+function renderCards() {
+  const container = document.getElementById('cardsContainer');
+  const list = getVisibleUBS();
+  document.getElementById('unitsCount').textContent =
+    `${list.length} unidade${list.length !== 1 ? 's' : ''} verificada${list.length !== 1 ? 's' : ''} com atendimento hoje`;
+
+  // Atualiza visibilidade dos markers no mapa
+  UBS_DATA.forEach(ubs => {
+    const m = leafletMarkers[ubs.id];
+    if (!m) return;
+    if (list.find(u => u.id === ubs.id)) {
+      map.addLayer(m);
+    } else {
+      map.removeLayer(m);
+    }
+  });
+
+  if (list.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px 0;">
+      Nenhuma unidade encontrada para este filtro.
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(ubs => `
+    <div class="ubs-card ${ubs.id === selectedId ? 'selected' : ''}" id="card-${ubs.id}" onclick="selectUBS('${ubs.id}')">
+      <div class="ubs-card-title">${ubs.name}</div>
+
+      ${ubs.status === 'open'
+        ? `<div class="badge-open">
+             <i data-lucide="check-circle-2" style="width:13px;height:13px;"></i>
+             ${ubs.statusLabel}
+           </div>`
+        : `<div class="badge-warn">
+             <i data-lucide="alert-circle" style="width:13px;height:13px;"></i>
+             ${ubs.statusLabel}
+           </div>`
+      }
+
+      <div class="meta-line">
+        ${ubs.address} • <strong>${ubs.distance}</strong> • ${ubs.hours}
+      </div>
+
+      ${ubs.careLineWarning ? `
+        <div class="care-line-box">
+          <i data-lucide="git-fork" style="width:16px;height:16px;color:#b45309;flex-shrink:0;"></i>
+          <div><strong>Linha de Cuidado:</strong> ${ubs.careLineWarning}</div>
         </div>
-      `,
-      iconSize: [110, 60],
-      iconAnchor: [55, 55]
-    });
-    const marker1 = L.marker(ubs1Coords, { icon: ubs1Icon }).addTo(map);
-    marker1.on('click', () => focusUBS(1));
+      ` : ''}
 
-    // 4. MARCADOR: CR POP TT
-    const ubs2Icon = L.divIcon({
-      className: 'custom-ubs-marker',
-      html: `
-        <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-          <div class="marker-label-pill">
-            <span style="width:6px; height:6px; background:#b45309; border-radius:50%;"></span>
-            CR POP TT
-          </div>
-          <div class="marker-pin-circle">
-            <i data-lucide="briefcase" style="width: 15px; height: 15px; stroke-width: 2.4;"></i>
-          </div>
-        </div>
-      `,
-      iconSize: [110, 60],
-      iconAnchor: [55, 55]
-    });
-    const marker2 = L.marker(ubs2Coords, { icon: ubs2Icon }).addTo(map);
-    marker2.on('click', () => focusUBS(2));
+      <div class="tags-row">
+        ${ubs.tags.map((t, i) =>
+          `<span class="tag ${i === 0 ? 'tag-blue' : 'tag-gray'}">${t}</span>`
+        ).join('')}
+      </div>
 
-    // Re-renderizar ícones dentro dos marcadores Leaflet
-    setTimeout(() => lucide.createIcons(), 100);
-
-    // 5. INTERATIVIDADE: Selecionar e focar UBS
-    function focusUBS(id) {
-      document.querySelectorAll('.ubs-card').forEach(c => c.classList.remove('selected'));
-      const card = document.getElementById(`card-${id}`);
-      if (card) {
-        card.classList.add('selected');
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      if (id === 1) {
-        map.flyTo(ubs1Coords, 16, { duration: 0.8 });
-      } else {
-        map.flyTo(ubs2Coords, 16, { duration: 0.8 });
-      }
-    }
-
-    function recenterMap() {
-      map.flyTo(userCoords, 15.5, { duration: 0.8 });
-    }
-
-    // 6. EXPANDIR / RECOLHER BOTTOM SHEET
-    let sheetExpanded = false;
-    function toggleSheetExpansion() {
-      const sheet = document.getElementById('bottomSheet');
-      sheetExpanded = !sheetExpanded;
-      sheet.style.height = sheetExpanded ? '680px' : '480px';
-    }
-
-    // 7. FILTROS RÁPIDOS
-    function setFilter(el, filterType) {
-      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-
-      const card1 = document.getElementById('card-1');
-      const card2 = document.getElementById('card-2');
-      const countEl = document.getElementById('unitsCount');
-
-      if (filterType === 'sampa_trans') {
-        card1.style.display = 'block';
-        card2.style.display = 'block';
-        countEl.textContent = '2 unidades com linha Sampa Trans hoje';
-      } else if (filterType === 'prep') {
-        card1.style.display = 'block';
-        card2.style.display = 'none';
-        countEl.textContent = '1 unidade verificada para PrEP hoje';
-      } else {
-        card1.style.display = 'block';
-        card2.style.display = 'block';
-        countEl.textContent = '2 unidades verificadas com atendimento hoje';
-      }
-    }
-
-    // 8. BUSCA POR TEXTO
-    function handleSearch(term) {
-      const q = term.toLowerCase();
-      const card1 = document.getElementById('card-1');
-      const card2 = document.getElementById('card-2');
-
-      const match1 = 'ubs república fernanda sante limeira patriarca prep pep'.includes(q);
-      const match2 = 'cr pop tt janaina lima bom retiro jaraguá hormonização'.includes(q);
-
-      card1.style.display = match1 || q === '' ? 'block' : 'none';
-      card2.style.display = match2 || q === '' ? 'block' : 'none';
-    }
-
-    // 9. LIGAÇÃO & ROTAS
-    function callPhone(num) {
-      alert(`Discando para a unidade: ${num}`);
-    }
-
-    function openDirections(lat, lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-    }
-
-    // 10. MODO DISFARÇAR (Calculadora funcional)
-    function toggleDisguise(show) {
-      const modal = document.getElementById('calcModal');
-      modal.className = show ? 'calc-modal open' : 'calc-modal';
-      if (show) {
-        calcValue = '0';
-        updateCalc();
-      }
-    }
-
-    let calcValue = '0';
-    function updateCalc() {
-      document.getElementById('calcDisplay').textContent = calcValue;
-    }
-
-    function calcKey(key) {
-      if (key === 'C') {
-        calcValue = '0';
-      } else if (key === '=') {
-        try {
-          calcValue = String(eval(calcValue.replace(/×/g, '*').replace(/÷/g, '/')));
-        } catch {
-          calcValue = '0';
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${ubs.phone
+          ? `<button class="btn btn-outline" onclick="callPhone('${ubs.phone}')">
+               <i data-lucide="phone" style="width:14px;height:14px;"></i> Ligar
+             </button>`
+          : ubs.careLineWarning
+          ? `<button class="btn btn-outline" onclick="alert('Linha de cuidado da População Travesti e Transexual da Cidade de SP.')">
+               <i data-lucide="git-branch" style="width:14px;height:14px;"></i> Ver Fluxo
+             </button>`
+          : ''
         }
-      } else {
-        calcValue = calcValue === '0' ? key : calcValue + key;
+        <button class="btn btn-dark" onclick="openDirections(${ubs.lat}, ${ubs.lng})">
+          <i data-lucide="navigation" style="width:14px;height:14px;"></i> Como Chegar
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  lucide.createIcons();
+}
+
+// ═══════════════════════════════════════════════
+// 5. NOMINATIM — Geocoding com Autocomplete
+// ═══════════════════════════════════════════════
+let nominatimTimer   = null;
+let nominatimAbort   = null;
+const AC_LIST        = document.getElementById('autocompleteList');
+
+function onSearchInput(val) {
+  searchQuery = val;
+  renderCards(); // filtra cards em tempo real
+
+  // Limpa timer anterior
+  clearTimeout(nominatimTimer);
+  if (nominatimAbort) nominatimAbort.abort();
+
+  if (val.trim().length < 3) {
+    closeAutocomplete();
+    return;
+  }
+
+  // Debounce 600ms (respeita ToS Nominatim)
+  nominatimTimer = setTimeout(() => fetchNominatim(val.trim()), 600);
+}
+
+async function fetchNominatim(query) {
+  nominatimAbort = new AbortController();
+  AC_LIST.innerHTML = '<div class="search-loading">Buscando...</div>';
+  AC_LIST.classList.add('open');
+
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      format: 'json',
+      limit: '5',
+      countrycodes: 'br',
+      addressdetails: '1',
+    });
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      {
+        headers: {
+          'User-Agent': 'UBSFinder/1.0 (hackathon preview)',
+          'Accept-Language': 'pt-BR,pt;q=0.9',
+        },
+        signal: nominatimAbort.signal,
       }
-      updateCalc();
+    );
+    const data = await res.json();
+
+    if (!data.length) {
+      AC_LIST.innerHTML = '<div class="search-empty">Nenhum endereço encontrado.</div>';
+      return;
     }
-  </script>
+
+    AC_LIST.innerHTML = data.map((r, i) => {
+      const parts   = r.display_name.split(',');
+      const primary = parts[0];
+      const sub     = parts.slice(1, 3).join(',').trim();
+      return `
+        <div class="autocomplete-item" onclick="selectNominatimResult(${r.lat}, ${r.lon}, '${primary.replace(/'/g,"\\'")}')">
+          <i data-lucide="map-pin" class="ac-icon" style="width:14px;height:14px;"></i>
+          <div>
+            <div class="ac-name">${primary}</div>
+            <div class="ac-sub">${sub}</div>
+          </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      AC_LIST.innerHTML = '<div class="search-empty">Erro ao buscar. Tente novamente.</div>';
+    }
+  }
+}
+
+function calcDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
+}
+
+function selectNominatimResult(lat, lon, name) {
+  closeAutocomplete();
+  map.flyTo([lat, lon], 16, { duration: 0.8 });
+
+  // Remove pin anterior se houver
+  if (nominatimMarker) map.removeLayer(nominatimMarker);
+
+  // Adiciona novo pin de resultado pesquisado
+  nominatimMarker = L.marker([lat, lon], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div class="nominatim-marker">📍 ${name}</div>`,
+      iconSize: [180, 28], iconAnchor: [90, 14],
+    }),
+  }).addTo(map);
+
+  // Se o local pesquisado no OpenStreetMap for uma unidade de saúde, adiciona na lista dinâmica
+  const isHealth = /ubs|sa[uú]de|cl[ií]nica|posto|hospital/i.test(name);
+  if (isHealth && !UBS_DATA.some(u => u.name.toLowerCase() === name.toLowerCase())) {
+    const dist = calcDistanceKm(USER_COORDS[0], USER_COORDS[1], lat, lon);
+    const newUBS = {
+      id: 'osm-' + Date.now(),
+      name: name,
+      shortName: name.length > 25 ? name.substring(0, 22) + '...' : name,
+      address: 'Endereço verificado via OpenStreetMap',
+      distance: `${dist}km de você`,
+      hours: 'Consultar unidade',
+      status: 'open',
+      statusLabel: 'Cadastrada no OpenStreetMap',
+      tags: ['Local Real OSM', 'Acolhimento SUS'],
+      lat: Number(lat),
+      lng: Number(lon),
+      isPopTT: false,
+      filters: ['all', 'acolhimento'],
+    };
+    UBS_DATA.push(newUBS);
+
+    // Adiciona marcador no mapa
+    const m = L.marker([newUBS.lat, newUBS.lng], { icon: makeUBSIcon(newUBS, true) })
+      .addTo(map)
+      .on('click', () => selectUBS(newUBS.id));
+    leafletMarkers[newUBS.id] = m;
+
+    renderCards();
+    selectUBS(newUBS.id);
+  }
+}
+
+function closeAutocomplete() {
+  AC_LIST.classList.remove('open');
+  AC_LIST.innerHTML = '';
+}
+
+// ═══════════════════════════════════════════════
+// 6. FILTROS
+// ═══════════════════════════════════════════════
+function setFilter(el, filter) {
+  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = filter;
+  renderCards();
+}
+
+// ═══════════════════════════════════════════════
+// 7. UTILITÁRIOS
+// ═══════════════════════════════════════════════
+function recenterMap() {
+  map.flyTo(USER_COORDS, 15.5, { duration: 0.8 });
+}
+
+function toggleSheet() {
+  const sheet = document.getElementById('bottomSheet');
+  sheetExpanded = !sheetExpanded;
+  sheet.style.height = sheetExpanded ? '680px' : '420px';
+}
+
+function callPhone(num) {
+  window.open(`tel:+55${num}`, '_self');
+}
+
+function openDirections(lat, lng) {
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+}
+
+// ═══════════════════════════════════════════════
+// 8. MODO DISFARÇAR (Calculadora)
+// ═══════════════════════════════════════════════
+function toggleDisguise(show) {
+  const modal = document.getElementById('calcModal');
+  modal.className = show ? 'calc-modal open' : 'calc-modal';
+  if (show) { calcValue = '0'; updateCalc(); }
+}
+
+let calcValue = '0';
+function updateCalc() {
+  document.getElementById('calcDisplay').textContent = calcValue;
+}
+function calcKey(key) {
+  if (key === 'C') {
+    calcValue = '0';
+  } else if (key === '+/-') {
+    calcValue = calcValue.startsWith('-') ? calcValue.slice(1) : '-' + calcValue;
+  } else if (key === '=') {
+    try { calcValue = String(eval(calcValue.replace(/×/g,'*').replace(/÷/g,'/'))); }
+    catch { calcValue = '0'; }
+  } else {
+    calcValue = (calcValue === '0' && !['.','+','-','*','/'].includes(key)) ? key : calcValue + key;
+  }
+  updateCalc();
+}
+
+// ═══════════════════════════════════════════════
+// 9. INICIALIZAÇÃO
+// ═══════════════════════════════════════════════
+renderCards();
+</script>
 </body>
 </html>

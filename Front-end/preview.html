@@ -3,1130 +3,855 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Rede Sampa Trans • As 5 Telas Completas (Preview Interativo)</title>
+  <title>Rede Sampa Trans • Arquitetura de Fluxo & UI Refinada</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Leaflet para o Mapa da Tela 1 -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  
+  <!-- Leaflet para o Mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'canvas': '#F4F4F2',
+            'border-sand': '#E2DDD5',
+            'brand-navy': '#0B2545',
+            'brand-blue': '#93B8D5',
+            'status-green': '#1E5E43',
+            'status-amber': '#9A5B00',
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #0F172A;
-      color: #0F172A;
-      margin: 0;
-      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-    .custom-scroll::-webkit-scrollbar {
-      width: 4px;
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 20;
     }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(0,0,0,0.15);
-      border-radius: 4px;
+    .icon-fill {
+      font-variation-settings: 'FILL' 1, 'wght' 450, 'GRAD' 0, 'opsz' 20;
     }
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    #map-canvas {
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
+    .custom-scroll::-webkit-scrollbar { width: 0px; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    #map-canvas { width: 100%; height: 100%; z-index: 1; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-slate-900 text-slate-100">
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-neutral-900 text-neutral-100">
 
-  <!-- BARRA SUPERIOR SELETORA DAS TELAS -->
-  <header class="w-full max-w-xl mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2">
-    <div>
-      <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        Rede Sampa Trans • Design System Unificado
-      </span>
-      <h1 class="text-sm font-extrabold text-white">Ecossistema Completo (Google Stitch & SUS SP)</h1>
+  <!-- BARRA DE BANCADA (Para apresentação e teste rápido entre personas) -->
+  <header class="w-full max-w-xl mb-3 flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-xs font-semibold text-neutral-300">Simulador de Fluxo • Rede Acolhe SP &amp; SUS</span>
     </div>
     
-    <!-- Seletor Rápido das 6 Telas -->
-    <div class="flex flex-wrap items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
-      <button onclick="showScreen('screen-map')" id="btn-map" class="screen-btn px-2 py-1 rounded-lg text-xs font-bold bg-[#EBF5FB] text-slate-900 transition-all">1. Mapa</button>
-      <button onclick="showScreen('screen-details')" id="btn-details" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">2. Unidade</button>
-      <button onclick="showScreen('screen-search')" id="btn-search" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">3. Busca</button>
-      <button onclick="showScreen('screen-direitos')" id="btn-direitos" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">4. Direitos</button>
-      <button onclick="showScreen('screen-profissional')" id="btn-profissional" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">5. Profissional</button>
-      <button onclick="showScreen('screen-login')" id="btn-login" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">6. Login / Acesso</button>
+    <div class="flex flex-wrap items-center gap-1 bg-neutral-800 p-1 rounded-xl border border-neutral-700">
+      <button onclick="showScreen('screen-map')" id="btn-map" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-neutral-900 transition-all">1. Mapa</button>
+      <button onclick="showScreen('screen-search')" id="btn-search" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all">2. Busca</button>
+      <button onclick="showScreen('screen-details')" id="btn-details" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all">3. Unidade</button>
+      <button onclick="showScreen('screen-direitos')" id="btn-direitos" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all">4. Direitos IA</button>
+      <button onclick="showScreen('screen-login')" id="btn-login" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all">5. Login</button>
+      <button onclick="showScreen('screen-profissional')" id="btn-profissional" class="screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all">6. Médico (B2B)</button>
     </div>
   </header>
 
-  <!-- MOLDURA MÓVEL DO SMARTPHONE (390x844dp) -->
-  <main class="w-full max-w-[412px] h-[860px] max-h-[92vh] bg-[#EFEFEE] rounded-[38px] shadow-2xl border-4 border-slate-700 overflow-hidden relative flex flex-col select-none text-slate-900">
+  <!-- VIEWPORT DO SMARTPHONE (390x844dp) -->
+  <main class="w-full max-w-[400px] h-[850px] max-h-[90vh] bg-canvas rounded-[40px] shadow-2xl border-[6px] border-neutral-800 overflow-hidden relative flex flex-col select-none text-neutral-900">
     
-    <!-- Notch / Barra de Status -->
-    <div class="w-full bg-white pt-2 pb-1 px-6 flex justify-between items-center text-[11px] font-bold text-slate-800 z-50 shrink-0">
+    <!-- Barra de Status iOS/Android -->
+    <div class="w-full bg-white pt-2 pb-1.5 px-6 flex justify-between items-center text-[11px] font-semibold text-neutral-800 z-40 shrink-0">
       <span>14:30</span>
-      <div class="w-20 h-4 bg-slate-900 rounded-full mx-auto"></div>
-      <div class="flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.28 19.59 10.58 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
-        <span>100%</span>
+      <div class="w-20 h-4 bg-neutral-950 rounded-full mx-auto"></div>
+      <div class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+        <span class="material-symbols-outlined text-[14px]">wifi</span>
+        <span class="material-symbols-outlined text-[15px] icon-fill">battery_full</span>
       </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- SIDEBAR LATERAL (GAVETA DE NAVEGAÇÃO E TROCA DE PERFIL) -->
+    <!-- ========================================== -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[1px] z-50 transition-opacity"></div>
+    
+    <aside id="sidebar-drawer" class="absolute top-0 bottom-0 left-0 w-[290px] bg-white z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+      <!-- Topo da Sidebar: Status do Usuário -->
+      <div>
+        <div class="p-5 pt-10 bg-brand-navy text-white">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[22px] text-brand-blue" id="sidebar-avatar-icon">shield_person</span>
+            </div>
+            <button onclick="toggleSidebar(false)" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <h3 class="font-bold text-sm" id="sidebar-user-name">Navegação Anônima</h3>
+          <p class="text-[11px] text-brand-blue/90 mt-0.5" id="sidebar-user-status">Seus dados e buscas não ficam salvos</p>
+          
+          <button onclick="toggleSidebar(false); showScreen('screen-login')" id="sidebar-login-btn" class="mt-3.5 w-full py-2 px-3 rounded-lg bg-white text-brand-navy font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-neutral-100 transition-all">
+            <span class="material-symbols-outlined text-[16px]">login</span>
+            <span>Entrar com Cartão SUS / Gov.br</span>
+          </button>
+        </div>
+
+        <!-- Links Principais da Sidebar -->
+        <nav class="p-3 space-y-1 text-xs font-medium text-neutral-700">
+          <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Navegação Cidadã</div>
+          
+          <button onclick="toggleSidebar(false); showScreen('screen-map')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-100 text-neutral-900 font-semibold">
+            <span class="material-symbols-outlined text-[20px] text-brand-navy">map</span>
+            <span>Mapa da Rede Sampa Trans</span>
+          </button>
+
+          <button onclick="toggleSidebar(false); showScreen('screen-search')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-100">
+            <span class="material-symbols-outlined text-[20px] text-neutral-500">tune</span>
+            <span>Busca por Especialidade e CRS</span>
+          </button>
+
+          <button onclick="toggleSidebar(false); showScreen('screen-direitos')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-100">
+            <span class="material-symbols-outlined text-[20px] text-neutral-500">balance</span>
+            <span>Direitos, Nome Social e IA</span>
+          </button>
+
+          <div class="my-2 border-t border-neutral-100"></div>
+          <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Canais de Emergência 24h</div>
+
+          <a href="tel:100" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-neutral-100">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[19px] text-amber-700">support_agent</span>
+              <span>Disque Direitos Humanos</span>
+            </div>
+            <span class="font-bold text-neutral-900">100</span>
+          </a>
+
+          <a href="tel:192" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-neutral-100">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[19px] text-red-700">emergency</span>
+              <span>SAMU Emergência Médica</span>
+            </div>
+            <span class="font-bold text-neutral-900">192</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Rodapé da Sidebar: Troca de Contexto para Profissional (Separado do Paciente!) -->
+      <div class="p-4 border-t border-neutral-200 bg-neutral-50">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">Acesso Corporativo / Equipes</div>
+        <button onclick="toggleSidebar(false); openProfessionalLogin()" class="w-full p-2.5 rounded-xl bg-white border border-neutral-200 hover:border-brand-navy shadow-2xs flex items-center justify-between text-left transition-all">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-brand-navy/10 text-brand-navy flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">stethoscope</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-neutral-900 block leading-none">Sou Profissional SUS</span>
+              <span class="text-[10px] text-neutral-500">Protocolos e Educação Permanente</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-[18px] text-neutral-400">chevron_right</span>
+        </button>
+      </div>
+    </aside>
 
     <!-- ÁREA DE TELAS -->
     <div class="flex-1 overflow-y-auto custom-scroll relative flex flex-col">
 
       <!-- ========================================== -->
-      <!-- TELA 1: HOME MAP-FIRST COM BOTTOM SHEET (Stitch Tela 1) -->
+      <!-- TELA 1: MAPA HOME (Abertura Imediata Sem Login Wall) -->
       <!-- ========================================== -->
       <section id="screen-map" class="screen-panel relative flex-1 flex flex-col h-full overflow-hidden">
-        <!-- Header Flutuante de Busca do Mapa -->
+        <!-- Barra Superior Flutuante com Menu Sidebar (☰) + Busca + Saída Rápida -->
         <div class="absolute top-3 left-3 right-3 z-20 space-y-2">
-          <div onclick="showScreen('screen-search')" class="cursor-pointer flex items-center bg-white/95 backdrop-blur-md border border-[#D6C2AC] rounded-full px-3.5 h-12 shadow-md hover:border-slate-400 transition-all">
-            <svg class="w-4 h-4 text-slate-700 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <span class="text-xs font-semibold text-slate-500 flex-1 select-none">Buscar UBS, PrEP, acolhimento, endereço...</span>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button onclick="event.stopPropagation(); showScreen('screen-login')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-xs" title="Acessar conta ou entrar anônimo">
-                👤
-              </button>
-              <button onclick="event.stopPropagation(); toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[11px] font-bold text-slate-700">
-                🛡️ Modo Seguro
-              </button>
+          <div class="flex items-center bg-white border border-neutral-200/90 rounded-2xl px-2.5 h-12 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+            <button onclick="toggleSidebar(true)" class="w-9 h-9 rounded-xl hover:bg-neutral-100 flex items-center justify-center text-neutral-700 shrink-0" title="Abrir Menu Lateral">
+              <span class="material-symbols-outlined text-[22px]">menu</span>
+            </button>
+            
+            <div onclick="showScreen('screen-search')" class="flex-1 flex items-center px-2 cursor-pointer">
+              <span class="text-xs text-neutral-500 truncate">Buscar UBS, PrEP, hormônio...</span>
             </div>
+
+            <button onclick="toggleDisguise(true)" class="h-8 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 flex items-center gap-1 text-[11px] font-semibold shrink-0 transition-all" title="Ocultar tela imediatamente">
+              <span class="material-symbols-outlined text-[15px] text-brand-navy icon-fill">visibility_off</span>
+              <span>Ocultar</span>
+            </button>
           </div>
 
-          <!-- Pílulas de Filtros Rápidos sobre o Mapa -->
+          <!-- Filtros Rápidos Limpos -->
           <div class="flex gap-1.5 overflow-x-auto hide-scrollbar text-xs">
-            <button onclick="showScreen('screen-map')" class="px-3 py-1.5 rounded-full bg-[#0B192C] text-white font-bold shrink-0 shadow-xs">Todos os Serviços</button>
-            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Saúde SUS (Sampa Trans)</button>
-            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Acolhimento & Abrigo</button>
-            <button onclick="showScreen('screen-search')" class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs hover:bg-slate-100 transition-all">Segurança / Delegacias</button>
+            <button onclick="showScreen('screen-map')" class="px-3.5 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 shadow-xs">Todos</button>
+            <button onclick="showScreen('screen-search')" class="px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50">Porta Aberta (UBS)</button>
+            <button onclick="showScreen('screen-search')" class="px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50">Hormonização</button>
+            <button onclick="showScreen('screen-search')" class="px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50">Acolhimento</button>
           </div>
         </div>
 
-        <!-- Canvas do Mapa Vetorial (Leaflet com visual minimalista limpo) -->
-        <div id="map-canvas" class="flex-1 bg-slate-200"></div>
+        <!-- Mapa Leaflet -->
+        <div id="map-canvas" class="flex-1 bg-neutral-200"></div>
 
-        <!-- Bottom Sheet Persistente Ancorado a 45% -->
-        <div class="absolute bottom-0 left-0 right-0 z-20 bg-white rounded-t-[28px] border-t-2 border-[#D6C2AC] shadow-2xl max-h-[52%] flex flex-col">
-          <!-- Grab Handle -->
-          <div class="w-12 h-1.5 bg-[#D6C2AC] rounded-full mx-auto my-2.5"></div>
+        <!-- Bottom Sheet Ancorado -->
+        <div class="absolute bottom-0 left-0 right-0 z-20 bg-white rounded-t-3xl border-t border-neutral-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] max-h-[50%] flex flex-col">
+          <div class="w-10 h-1 bg-neutral-300 rounded-full mx-auto my-2.5 shrink-0"></div>
 
-          <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
-            <span class="text-xs font-extrabold uppercase tracking-wide text-slate-900">Mais Próximos de Você (São Paulo)</span>
-            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">2 abertas agora</span>
+          <div class="px-4 pb-2.5 flex justify-between items-center border-b border-neutral-100">
+            <div>
+              <h2 class="text-xs font-bold text-neutral-900">Unidades Próximas a Você</h2>
+              <p class="text-[11px] text-neutral-500">Centro, São Paulo • GPS ativo</p>
+            </div>
+            <span class="text-[11px] font-semibold text-status-green bg-emerald-50 px-2.5 py-0.5 rounded-full">2 abertas</span>
           </div>
 
-          <!-- Lista de Unidades do Bottom Sheet -->
           <div class="overflow-y-auto p-4 space-y-3 custom-scroll flex-1">
-            <!-- Card 1: UBS República (Porta Aberta 450m) -->
-            <div class="p-4 rounded-2xl bg-white border border-[#D6C2AC] shadow-xs space-y-2.5">
-              <div class="flex justify-between items-start">
+            <!-- Card 1: UBS República -->
+            <article class="p-3.5 rounded-2xl bg-white border border-neutral-200 border-l-4 border-l-status-green shadow-2xs space-y-2">
+              <div class="flex justify-between items-start gap-2">
                 <div>
-                  <h3 class="font-extrabold text-slate-900 text-sm">UBS República - Fernanda Sante Limeira</h3>
-                  <p class="text-[11.5px] text-slate-600 mt-0.5">Praça do Patriarca, 100 • <b>450m de você</b> • <span class="text-emerald-700 font-bold">Aberto até 19h</span></p>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-status-green block">Porta Aberta • Sem Agendamento</span>
+                  <h3 class="font-bold text-neutral-900 text-sm mt-0.5">UBS República - Fernanda Sante Limeira</h3>
+                  <p class="text-xs text-neutral-500 mt-0.5">Praça do Patriarca, 100 • <strong class="text-neutral-800">450m</strong></p>
                 </div>
-                <button class="text-slate-400 hover:text-amber-500">🔖</button>
+                <button onclick="requireLoginForAction('salvar esta unidade nos favoritos')" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400">
+                  <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                </button>
               </div>
-              <div class="flex flex-wrap gap-1.5 text-[10.5px]">
-                <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Rede Sampa Trans</span>
-                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">Porta Aberta: Testes Rápidos & PrEP</span>
+              
+              <div class="grid grid-cols-2 gap-2 pt-2">
+                <a href="tel:1132423756" class="h-9 rounded-xl border border-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5 text-neutral-700 hover:bg-neutral-50">
+                  <span class="material-symbols-outlined text-[16px]">call</span>
+                  <span>Ligar</span>
+                </a>
+                <button onclick="showScreen('screen-details')" class="h-9 rounded-xl bg-brand-navy text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-slate-800">
+                  <span>Ver Unidade</span>
+                  <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
               </div>
-              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-                <a href="tel:1132423756" class="h-11 rounded-xl border border-slate-300 text-xs font-bold flex items-center justify-center text-slate-800 bg-white hover:bg-slate-50 transition-all">Ligar: 3242-3756</a>
-                <button onclick="showScreen('screen-details')" class="h-11 rounded-xl bg-[#0B192C] text-white text-xs font-bold flex items-center justify-center hover:bg-slate-800 transition-all">Como Chegar</button>
-              </div>
-            </div>
+            </article>
 
-            <!-- Card 2: CR POP TT Janaina Lima (Exige Acolhimento Prévio na UBS) -->
-            <div class="p-4 rounded-2xl bg-white border border-[#D6C2AC] shadow-xs space-y-2.5">
-              <div class="flex justify-between items-start">
+            <!-- Card 2: CR POP TT Janaina Lima -->
+            <article class="p-3.5 rounded-2xl bg-white border border-neutral-200 border-l-4 border-l-status-amber shadow-2xs space-y-2">
+              <div class="flex justify-between items-start gap-2">
                 <div>
-                  <h3 class="font-extrabold text-slate-900 text-sm">CR POP TT Janaina Lima - Bom Retiro</h3>
-                  <p class="text-[11.5px] text-slate-600 mt-0.5">Rua Jaraguá, 866 • <b>1.8 km de você</b></p>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-status-amber block">Exige Encaminhamento da UBS</span>
+                  <h3 class="font-bold text-neutral-900 text-sm mt-0.5">CR POP TT Janaina Lima - Bom Retiro</h3>
+                  <p class="text-xs text-neutral-500 mt-0.5">Rua Jaraguá, 866 • <strong class="text-neutral-800">1.8 km</strong></p>
                 </div>
-                <button class="text-slate-400 hover:text-amber-500">🔖</button>
+                <button onclick="requireLoginForAction('salvar esta unidade nos favoritos')" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400">
+                  <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                </button>
               </div>
-              <!-- Aviso de Precedência / Trauma-Informed -->
-              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-amber-200 text-[11px] text-amber-900 leading-snug">
-                ⚠️ <b>Atenção de Fluxo:</b> Exige acolhimento prévio na UBS de referência do seu bairro para início da hormonização.
-              </div>
-              <div class="flex flex-wrap gap-1.5 text-[10.5px]">
-                <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Ambulatório Especializado TT</span>
-                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200">Hormonização</span>
-              </div>
-              <button onclick="showScreen('screen-details')" class="w-full h-11 rounded-xl bg-[#0B192C] text-white text-xs font-bold flex items-center justify-center hover:bg-slate-800 transition-all">
-                Ver Detalhes & Fluxo Clínico →
+
+              <button onclick="showScreen('screen-details')" class="w-full h-9 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-900 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">account_tree</span>
+                <span>Entender Fluxo de Acesso e Detalhes</span>
               </button>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 2: DETALHES DA UNIDADE & FLUXO (Stitch Tela 2) -->
+      <!-- TELA 2: BUSCA & FILTROS (CRS + Serviços) -->
       <!-- ========================================== -->
-      <section id="screen-details" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header Unificado 56px -->
-        <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
-          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          </button>
-          <div class="text-center">
-            <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">REDE SAMPA TRANS</span>
-            <span class="text-sm font-bold text-slate-900">Detalhes da Unidade</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button class="text-slate-500 hover:text-amber-500 text-sm">🔖</button>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
-              🛡️ Disfarçar
+      <section id="screen-search" class="screen-panel hidden min-h-full pb-6">
+        <header class="bg-white px-4 pt-3 pb-3 border-b border-neutral-200 sticky top-0 z-30 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <button onclick="goBack()" class="w-8 h-8 -ml-1 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-800">
+              <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </button>
+            <span class="text-xs font-bold text-neutral-900">Buscar na Rede</span>
+            <button onclick="toggleDisguise(true)" class="h-8 px-2.5 rounded-xl bg-neutral-100 text-neutral-800 flex items-center gap-1 text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-[15px] text-brand-navy icon-fill">visibility_off</span>
+              <span>Ocultar</span>
             </button>
           </div>
-        </div>
 
-        <!-- Hero Map Image 180px com Gradiente -->
-        <div class="relative w-full h-[180px] bg-slate-300 overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-          <div class="absolute bottom-3 left-4 right-4 flex justify-between items-center text-xs text-white z-10">
-            <span class="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 font-medium">📍 CRS Centro • Bom Retiro</span>
-            <span class="px-2.5 py-1 rounded-full bg-emerald-950/80 backdrop-blur-md border border-emerald-500/40 text-emerald-400 font-bold flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              Aberto até 19h
-            </span>
+          <div class="flex items-center bg-canvas border border-neutral-300 rounded-xl px-3 h-10">
+            <span class="material-symbols-outlined text-[18px] text-neutral-400 mr-2">search</span>
+            <input type="text" id="search-input" value="Hormonização Zona Leste" class="bg-transparent text-xs font-semibold text-neutral-900 flex-1 outline-none" />
+          </div>
+        </header>
+
+        <div class="p-4 space-y-3">
+          <!-- Filtros Enxutos -->
+          <div class="bg-white rounded-2xl p-3.5 border border-neutral-200 space-y-2.5 text-xs">
+            <div class="flex gap-1.5 overflow-x-auto hide-scrollbar">
+              <span class="px-3 py-1 rounded-full bg-brand-navy text-white font-semibold shrink-0">CRS Leste</span>
+              <span class="px-3 py-1 rounded-full bg-brand-blue/25 text-brand-navy font-semibold shrink-0">Hormonização</span>
+              <span class="px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 shrink-0">Rede SUS</span>
+            </div>
+          </div>
+
+          <div class="text-[11px] font-bold uppercase tracking-wider text-neutral-500 px-1">2 Unidades Encontradas</div>
+
+          <!-- Resultado 1 -->
+          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
+            <span class="text-[10px] font-bold text-brand-navy bg-brand-blue/25 px-2 py-0.5 rounded">CRS Leste • Cidade Tiradentes</span>
+            <h3 class="font-bold text-sm text-neutral-900">Casa Ser - Centro de Atenção à Saúde</h3>
+            <p class="text-xs text-neutral-500">Av. Dr. Guilherme de Abreu Sodré, 485 • 12 km</p>
+            <div class="pt-2 flex justify-end gap-2">
+              <a href="tel:1125557090" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700">Ligar</a>
+              <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Ver Fluxo</button>
+            </div>
+          </article>
+
+          <!-- Resultado 2 -->
+          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
+            <span class="text-[10px] font-bold text-status-green bg-emerald-50 px-2 py-0.5 rounded">Porta Aberta • São Mateus</span>
+            <h3 class="font-bold text-sm text-neutral-900">AMA/UBS Jardim Santo André</h3>
+            <p class="text-xs text-neutral-500">Rua Miguel Ferreira de Melo, 497 • 14 km</p>
+            <div class="pt-2 flex justify-end gap-2">
+              <a href="tel:1122538623" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700">Ligar</a>
+              <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Ver Fluxo</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TELA 3: DETALHES DA UNIDADE (CR POP TT) -->
+      <!-- ========================================== -->
+      <section id="screen-details" class="screen-panel hidden min-h-full pb-6">
+        <header class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-neutral-200 flex items-center justify-between sticky top-0 z-30">
+          <button onclick="goBack()" class="w-9 h-9 -ml-1 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-800">
+            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+          </button>
+          <span class="text-xs font-bold text-neutral-900">Detalhes da Unidade</span>
+          <button onclick="toggleDisguise(true)" class="h-8 px-2.5 rounded-xl bg-neutral-100 text-neutral-800 flex items-center gap-1 text-[11px] font-semibold">
+            <span class="material-symbols-outlined text-[15px] text-brand-navy icon-fill">visibility_off</span>
+            <span>Ocultar</span>
+          </button>
+        </header>
+
+        <div class="relative w-full h-40 bg-neutral-300">
+          <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Consultório" />
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/90 via-brand-navy/30 to-transparent"></div>
+          <div class="absolute bottom-3 left-4 right-4 flex justify-between items-center text-[11px] text-white">
+            <span class="font-medium">CRS Centro • Bom Retiro</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-900/80 border border-emerald-400/30 text-emerald-200 font-semibold">Aberto até 19h</span>
           </div>
         </div>
 
-        <!-- Conteúdo dos Detalhes -->
-        <div class="p-4 space-y-3.5">
-          <!-- Card Principal da Unidade -->
-          <div class="bg-white rounded-2xl p-5 border border-[#D6C2AC] shadow-xs space-y-3">
-            <span class="px-2.5 py-1 rounded-md bg-[#EBF5FB] text-[#0284C7] text-[10.5px] font-bold border border-[#BAE6FD] uppercase">
-              AMBULATÓRIO ESPECIALIZADO TT
-            </span>
-            <h2 class="text-lg font-bold text-slate-900 leading-snug">
-              Centro de Referência Janaina Lima (CR POP TT)
-            </h2>
-            <div class="space-y-1.5 text-xs text-slate-700">
-              <p class="flex items-start gap-1.5">📍 <span>Rua Jaraguá, 866 - Bom Retiro • <b>1.8 km de você</b></span></p>
-              <p class="flex items-start gap-1.5">🕒 <span class="text-slate-500">Segunda a Sexta, das 07h às 19h (Exceto feriados)</span></p>
+        <div class="p-4 space-y-3">
+          <div class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-3">
+            <span class="inline-block px-2 py-0.5 rounded bg-brand-blue/25 text-brand-navy text-[10px] font-bold uppercase">Ambulatório Especializado TT</span>
+            <h2 class="text-base font-bold text-neutral-900 leading-snug">Centro de Referência Janaina Lima (CR POP TT)</h2>
+            
+            <div class="space-y-1 text-xs text-neutral-600">
+              <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-neutral-400">location_on</span> Rua Jaraguá, 866 - Bom Retiro (1.8 km)</p>
+              <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-neutral-400">schedule</span> Segunda a Sexta, das 07h às 19h</p>
             </div>
-            <div class="grid grid-cols-2 gap-2.5 pt-2">
-              <a href="tel:1151962405" class="h-12 rounded-xl border border-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50">
-                📞 (11) 5196-2405
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <a href="tel:1151962405" class="h-10 rounded-xl border border-neutral-200 font-semibold text-xs flex items-center justify-center gap-1.5 text-neutral-800 hover:bg-neutral-50">
+                <span class="material-symbols-outlined text-[17px]">call</span>
+                <span>(11) 5196-2405</span>
               </a>
-              <button onclick="alert('Abrindo GPS para Rua Jaraguá, 866...')" class="h-12 rounded-xl bg-[#0B192C] text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-800">
-                🧭 Como Chegar
+              <button onclick="alert('Abrindo rota no mapa...')" class="h-10 rounded-xl bg-brand-navy text-white font-semibold text-xs flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-[17px]">directions</span>
+                <span>Como Chegar</span>
               </button>
             </div>
           </div>
 
-          <!-- Stepper de Linha de Cuidado SUS -->
-          <div class="bg-white rounded-2xl p-5 border border-[#D6C2AC] shadow-xs space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span class="font-bold text-sm text-slate-900 flex items-center gap-1.5">🌿 Linha de Cuidado & Acesso</span>
-              <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">PROTOCOLO SUS</span>
-            </div>
-            <div class="bg-[#FAF8F5] p-3 rounded-xl border border-[#E9E1D7] text-xs text-slate-700 leading-relaxed">
-              ℹ️ <b>Unidade terciária especializada.</b> Para início do cuidado, o primeiro acolhimento ocorre via atenção primária (UBS), garantindo encaminhamento contínuo e seguro.
+          <!-- Passo a Passo de Precedência (RF 04) -->
+          <div class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-3">
+            <div class="flex items-center justify-between border-b border-neutral-100 pb-2">
+              <h3 class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-brand-navy">alt_route</span>
+                Como Iniciar o Atendimento (Fluxo SUS)
+              </h3>
             </div>
 
-            <!-- Steps -->
-            <div class="space-y-4 pl-1 text-xs">
-              <div class="flex items-start gap-3">
-                <span class="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 font-bold text-[11px]">✓</span>
+            <div class="space-y-3 text-xs">
+              <div class="flex gap-3">
+                <span class="w-5 h-5 rounded-full bg-status-green text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
                 <div>
-                  <div class="flex items-center gap-2 mb-0.5">
-                    <b>1. UBS do seu Bairro</b>
-                    <span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-bold border border-emerald-200">Porta Aberta</span>
-                  </div>
-                  <p class="text-slate-600">Primeira escuta e acolhimento com direito integral ao Nome Social e solicitação clínica de vaga.</p>
+                  <strong class="text-neutral-900 block">Acolhimento na UBS do seu Bairro (Porta Aberta)</strong>
+                  <p class="text-neutral-500 mt-0.5">Compareça à UBS mais próxima com seu Nome Social para primeira escuta e inserção no sistema SIGA.</p>
                 </div>
               </div>
-
-              <div class="flex items-start gap-3">
-                <span class="w-6 h-6 rounded-full bg-[#0B192C] text-white flex items-center justify-center shrink-0 font-bold text-[11px] ring-4 ring-slate-100">2</span>
+              <div class="flex gap-3">
+                <span class="w-5 h-5 rounded-full bg-brand-navy text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
                 <div>
-                  <div class="flex items-center gap-2 mb-0.5">
-                    <b>2. Agendamento via SIGA Saúde</b>
-                    <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-slate-200">Fase Atual</span>
-                  </div>
-                  <p class="text-slate-600">A regulação agenda a data na Rede Sampa Trans conforme a fila municipal. Você acompanha pela UBS ou SMS.</p>
+                  <strong class="text-neutral-900 block">Agendamento Regulado</strong>
+                  <p class="text-neutral-500 mt-0.5">A UBS solicita sua vaga neste Centro de Referência e avisa a data por telefone ou SMS.</p>
                 </div>
               </div>
-
-              <div class="flex items-start gap-3">
-                <span class="w-6 h-6 rounded-full bg-slate-100 border border-slate-300 text-slate-500 flex items-center justify-center shrink-0 font-bold text-[11px]">3</span>
+              <div class="flex gap-3">
+                <span class="w-5 h-5 rounded-full bg-neutral-200 text-neutral-600 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
                 <div>
-                  <b class="block mb-0.5">3. Consulta no CR POP TT</b>
-                  <p class="text-slate-600">Recepção pela equipe multiprofissional, acompanhamento laboratorial e início seguro do cuidado.</p>
+                  <strong class="text-neutral-700 block">Consulta Multiprofissional e Hormonioterapia</strong>
+                  <p class="text-neutral-500 mt-0.5">Início do acompanhamento com endocrinologista, psicologia e retirada gratuita de medicação.</p>
                 </div>
               </div>
             </div>
-
-            <!-- Callout Descobrir UBS -->
-            <button onclick="showScreen('screen-search')" class="w-full bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#E5DDD2] rounded-xl p-3 flex items-center justify-between text-left text-xs transition-all cursor-pointer">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-white border border-[#DDD3C5] flex items-center justify-center font-bold text-slate-700">⌖</div>
-                <div>
-                  <b class="text-slate-900 block">Descobrir minha UBS de referência</b>
-                  <span class="text-slate-500 text-[11px]">Localize a unidade mais próxima para acolhimento na porta aberta</span>
-                </div>
-              </div>
-              <span class="text-slate-400 font-bold">→</span>
-            </button>
           </div>
 
-          <!-- Grade 2x2 Serviços -->
-          <div class="bg-white rounded-2xl p-5 border border-[#D6C2AC] shadow-xs space-y-3">
-            <div class="flex justify-between items-center text-xs">
-              <b class="text-sm text-slate-900">Serviços Oferecidos</b>
-              <span class="text-slate-500">Equipe Multidisciplinar</span>
-            </div>
-            <div class="grid grid-cols-2 gap-2.5 text-xs">
-              <div class="bg-[#FAF8F5] border border-[#E9E1D7] p-2.5 rounded-xl flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">💊</span>
-                <div><b class="block text-slate-900">Hormonioterapia</b><span class="text-[10.5px] text-slate-500">Protocolo SUS</span></div>
-              </div>
-              <div class="bg-[#FAF8F5] border border-[#E9E1D7] p-2.5 rounded-xl flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-200">🧠</span>
-                <div><b class="block text-slate-900">Psicologia</b><span class="text-[10.5px] text-slate-500">Apoio continuado</span></div>
-              </div>
-              <div class="bg-[#FAF8F5] border border-[#E9E1D7] p-2.5 rounded-xl flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">👥</span>
-                <div><b class="block text-slate-900">Serviço Social</b><span class="text-[10.5px] text-slate-500">Cidadania & direitos</span></div>
-              </div>
-              <div class="bg-[#FAF8F5] border border-[#E9E1D7] p-2.5 rounded-xl flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200">🪪</span>
-                <div><b class="block text-slate-900">Nome Social</b><span class="text-[10.5px] text-slate-500">Orientação cartório</span></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Avaliações da Comunidade -->
-          <div class="bg-white rounded-2xl p-5 border border-[#D6C2AC] shadow-xs space-y-3">
-            <div class="flex items-center justify-between text-xs">
-              <b class="text-sm text-slate-900">Avaliações da Comunidade</b>
-              <div class="flex items-center gap-2">
-                <span class="bg-emerald-50 text-emerald-800 text-[10.5px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">🛡️ 100% Anônimo</span>
-                <b>⭐ 4.8</b>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 text-center text-xs">
-              <div class="bg-[#FAF8F5] p-2 rounded-xl border border-[#EBE4DC]"><b class="text-base block">4.9</b><span class="text-[10px] text-slate-500">Respeito ao Nome</span></div>
-              <div class="bg-[#FAF8F5] p-2 rounded-xl border border-[#EBE4DC]"><b class="text-base block">4.7</b><span class="text-[10px] text-slate-500">Acolhimento Recepção</span></div>
-              <div class="bg-[#FAF8F5] p-2 rounded-xl border border-[#EBE4DC]"><b class="text-base block">4.8</b><span class="text-[10px] text-slate-500">Segurança Geral</span></div>
-            </div>
-
-            <div class="bg-[#FAF8F5] p-3 rounded-xl border border-[#E7DFD5] text-xs space-y-1.5">
-              <div class="flex justify-between items-center text-[11px]">
-                <span class="text-amber-500">★★★★★</span>
-                <span class="text-emerald-700 font-medium">✓ Verificado via Cartão SUS</span>
-              </div>
-              <p class="italic text-slate-700">"Fui muito bem acolhida pela enfermagem. Chamaram pelo meu nome social desde a portaria sem qualquer constrangimento. Me senti segura do início ao fim."</p>
-            </div>
-
-            <button onclick="alert('Abrindo formulário anônimo criptografado de avaliação...')" class="w-full h-11 bg-[#0B192C] text-white rounded-xl text-xs font-bold hover:bg-slate-800">
-              💬 Compartilhar Avaliação Anônima
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- TELA 3: BUSCA AVANÇADA E FILTROS CRUZADOS (Stitch Tela 3) -->
-      <!-- ========================================== -->
-      <section id="screen-search" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header da Busca (Padrão Unificado 56px) -->
-        <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
-          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          </button>
-          <div class="text-center">
-            <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">REDE SAMPA TRANS</span>
-            <span class="text-sm font-bold text-slate-900">Busca & Filtros Avançados</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="showScreen('screen-login')" class="text-slate-600 hover:text-slate-900 text-xs p-1" title="Acessar conta">👤</button>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
-              🛡️ Disfarçar
-            </button>
-          </div>
-        </div>
-
-        <!-- Input de Busca Fixado Abaixo do Header -->
-        <div class="bg-white px-4 py-2.5 border-b border-slate-100 sticky top-14 z-20">
-          <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl px-3 h-11">
-            <svg class="w-4 h-4 text-slate-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" value="Hormonização Zona Leste" class="bg-transparent text-xs font-bold text-slate-900 flex-1 outline-none" />
-            <button class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] mr-2">✕</button>
-            <div class="w-px h-5 bg-slate-300 mr-2"></div>
-            <svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-          </div>
-        </div>
-
-        <!-- Conteúdo da Busca -->
-        <div class="p-4 space-y-3">
-          <!-- Card de Filtros Aplicados -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span class="text-xs font-extrabold text-slate-900 tracking-wider flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-                FILTROS APLICADOS (3 ATIVOS)
-              </span>
-              <button class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Limpar Filtros</button>
-            </div>
-
-            <!-- Tipo de Atendimento -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">TIPO DE ATENDIMENTO</span>
-              <div class="flex flex-wrap gap-1.5">
-                <span class="px-3 py-1 rounded-full bg-[#0B192C] text-white text-xs font-semibold flex items-center gap-1">✓ Saúde Integral</span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">Acolhimento & Abrigo</span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">Apoio Jurídico / Delegacias</span>
-              </div>
-            </div>
-
-            <!-- Região da Cidade -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">REGIÃO DA CIDADE</span>
-              <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
-                <span class="px-3 py-1 rounded-full bg-[#EBF5FB] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shrink-0">• CRS Leste (Ativa)</span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">CRS Norte</span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">CRS Centro/Oeste</span>
-              </div>
-            </div>
-
-            <!-- Esfera -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ESFERA</span>
-              <div class="grid grid-cols-3 bg-slate-100 p-0.5 rounded-xl text-center text-xs">
-                <span class="py-1 text-slate-500 font-medium">Todas</span>
-                <span class="py-1 bg-white font-bold text-slate-900 rounded-lg shadow-2xs">Rede SUS</span>
-                <span class="py-1 text-slate-500 font-medium">Privada Aliada</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Subheader Resultados -->
-          <div class="flex items-center justify-between text-xs pt-1">
-            <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-              RESULTADOS ENCONTRADOS (3)
-            </span>
-            <span class="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] text-slate-500 font-medium">
-              Ordenado por proximidade
-            </span>
-          </div>
-
-          <!-- Card 1: Casa Ser -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
+          <!-- Avaliações da Comunidade (RF 07 - Exige Login ao Clicar) -->
+          <div class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] text-[10.5px] font-bold border border-[#BAE6FD]">
-                Saúde Integral • CRS Leste
-              </span>
-              <button class="text-slate-400 hover:text-amber-500">🔖</button>
-            </div>
-            <h3 class="font-bold text-slate-900 text-base leading-snug">Casa Ser - Cidade Tiradentes</h3>
-            <p class="text-xs text-slate-600 flex items-center gap-1">📍 Av. Dr. Guilherme de Abreu Sodré, 485</p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">🏥 Hormonização</span>
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Saúde Reprodutiva</span>
-              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span class="text-xs font-semibold text-slate-800">🚌 12 km de você</span>
-              <div class="flex gap-2">
-                <a href="tel:1122851234" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
-                <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 2: AMA/UBS Santo André -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200">
-                Porta Aberta / Atenção Básica
-              </span>
-              <button class="text-slate-400 hover:text-amber-500">🔖</button>
-            </div>
-            <h3 class="font-bold text-slate-900 text-base leading-snug">AMA/UBS Jardim Santo André</h3>
-            <p class="text-xs text-slate-600 flex items-center gap-1">📍 Rua Miguel Ferreira de Melo, 497</p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">✓ Acolhimento Primário</span>
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Testes Rápidos</span>
-              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span class="text-xs font-semibold text-slate-800">🧭 14 km de você</span>
-              <div class="flex gap-2">
-                <a href="tel:1129625678" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
-                <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botão Flutuante Mapa -->
-        <div class="p-4 pt-1">
-          <button onclick="showScreen('screen-map')" class="w-full h-12 bg-[#0B192C] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 active:scale-98 transition-all">
-            🗺️ Ver Resultados no Mapa (3)
-          </button>
-        </div>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- TELA 4: DIREITOS & IA (Stitch Tela 4) -->
-      <!-- ========================================== -->
-      <section id="screen-direitos" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header Direitos -->
-        <div class="bg-white px-4 pt-3 pb-3 border-b border-[#E2D9CF] sticky top-0 z-30">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <div class="w-9 h-9 rounded-xl bg-[#0B192C] text-white flex items-center justify-center font-bold text-base">⚖️</div>
               <div>
-                <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">CIDADANIA & LEI</span>
-                <span class="text-base font-extrabold text-slate-900">Direitos & IA</span>
+                <h3 class="text-xs font-bold text-neutral-900">Avaliações da Comunidade</h3>
+                <p class="text-[11px] text-neutral-500">Relatos anônimos de pacientes do SUS</p>
+              </div>
+              <div class="flex items-center gap-1 bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg font-bold text-xs">
+                <span class="material-symbols-outlined text-[16px] text-amber-500 icon-fill">star</span>
+                <span>4.8</span>
               </div>
             </div>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700">
-              🛡️ Disfarçar
+
+            <div class="p-3 rounded-xl bg-canvas text-xs text-neutral-700 space-y-1">
+              <p class="italic">"Fui chamada pelo meu nome social desde a recepção sem qualquer constrangimento. Equipe muito acolhedora."</p>
+              <span class="text-[10px] text-status-green font-semibold block">✓ Atendimento verificado via CNS</span>
+            </div>
+
+            <button onclick="requireLoginForAction('enviar uma avaliação verificada mantendo seu anonimato público')" class="w-full h-10 rounded-xl border border-brand-navy text-brand-navy font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-brand-navy/5 transition-all">
+              <span class="material-symbols-outlined text-[17px]">rate_review</span>
+              <span>Avaliar Atendimento Desta Unidade</span>
             </button>
-          </div>
-          <p class="text-xs text-slate-600 mb-2.5">Orientações jurídicas atualizadas e sínteses normativas simplificadas por inteligência artificial.</p>
-
-          <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-3 h-10 mb-2.5 text-xs">
-            <span class="mr-2 text-slate-400">🔍</span>
-            <input type="text" placeholder="Buscar lei, nome social, retificação, PrEP..." class="bg-transparent flex-1 outline-none" />
-          </div>
-
-          <div class="flex gap-1.5 overflow-x-auto hide-scrollbar text-xs">
-            <span class="px-3 py-1 rounded-full bg-[#0B192C] text-white font-bold shrink-0">Todos</span>
-            <span class="px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-700 font-semibold shrink-0">Nome Social</span>
-            <span class="px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-700 font-semibold shrink-0">Retificação Civil</span>
-            <span class="px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-700 font-semibold shrink-0">Saúde SUS</span>
-          </div>
-        </div>
-
-        <!-- Conteúdo Direitos & IA -->
-        <div class="p-4 space-y-3.5">
-          <!-- Card de Síntese de IA -->
-          <div class="bg-white rounded-2xl border border-[#D6C2AC] shadow-xs overflow-hidden">
-            <div class="h-1 bg-[#0B192C] w-full"></div>
-            <div class="p-4 space-y-3 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="px-2.5 py-0.5 rounded-full bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">
-                  ✨ Síntese Inteligente com IA
-                </span>
-                <span class="text-slate-500 text-[11px] flex items-center gap-1">🟢 Legislação Vigente 2026</span>
-              </div>
-
-              <h2 class="text-base font-extrabold text-slate-900">Resumo com IA: Direitos na Rede SUS 2026</h2>
-              <p class="text-[11.5px] text-slate-500">Portaria MS nº 2.803 revisada • Protocolo Sampa Trans</p>
-
-              <div class="space-y-2">
-                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E9E1D7] flex items-start gap-2">
-                  <span class="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">✓</span>
-                  <p class="text-slate-700">O uso do <b>Nome Social</b> é garantido por lei em qualquer unidade da rede municipal e estadual, sem exigência de documento retificado prévio.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E9E1D7] flex items-start gap-2">
-                  <span class="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">✓</span>
-                  <p class="text-slate-700">A <b>Profilaxia Pós-Exposição (PEP)</b> é gratuita e deve ser iniciada prioritariamente nas primeiras 2h até no máximo 72h após exposição.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E9E1D7] flex items-start gap-2">
-                  <span class="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">✓</span>
-                  <p class="text-slate-700">Centros Especializados municipais (ex: Janaina Lima) oferecem equipe multiprofissional contínua para o <b>processo transexualizador</b>.</p>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                <div class="flex gap-2">
-                  <button onclick="alert('Texto copiado para a área de transferência!')" class="px-2.5 py-1 rounded-lg border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50">📋 Copiar</button>
-                  <button onclick="alert('Reproduzindo áudio síntese da portaria...')" class="px-2.5 py-1 rounded-lg border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50">🔊 Ouvir Resumo</button>
-                </div>
-                <a href="#" onclick="alert('Portaria MS 2.803/2026: Acesso integral no Diário Oficial')" class="font-bold text-slate-900 hover:underline">Ler portaria ↗</a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Guias Rápidos -->
-          <div class="space-y-2.5">
-            <div class="flex justify-between items-center text-xs">
-              <b class="text-sm text-slate-900 flex items-center gap-1.5">
-                Notícias & Guias Rápidos
-                <span class="px-2 py-0.5 bg-[#EBF5FB] text-[#0284C7] font-bold rounded-full text-[10px]">3 novos</span>
-              </b>
-              <span class="text-slate-500">Verificação Oficial</span>
-            </div>
-
-            <!-- Guia 1: Cartórios -->
-            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] border-l-4 border-l-purple-600 shadow-xs space-y-1.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-bold text-[10.5px]">Cartórios SP</span>
-                <span class="text-slate-500">🕒 3 min de leitura</span>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Passo a passo simplificado para retificação de prenome e gênero em 2026</h3>
-              <p class="text-slate-600">Não é mais necessária cirurgia nem laudo psiquiátrico. Veja a lista exata de certidões e gratuidade com base na ADI 4275 (STF)...</p>
-              <div class="flex justify-between items-center pt-1">
-                <button onclick="alert('Abrindo guia completo do Provimento 73/CNJ...')" class="font-bold text-slate-900 hover:underline">Ver Guia Prático →</button>
-                <button class="text-slate-400">🔖</button>
-              </div>
-            </div>
-
-            <!-- Guia 2: DECRADI -->
-            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] border-l-4 border-l-amber-500 shadow-xs space-y-1.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[10.5px]">Segurança Pública</span>
-                <span class="text-slate-500">🕒 4 min de leitura</span>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Como registrar ocorrência em delegacias especializadas contra crimes de transfobia na Grande SP</h3>
-              <p class="text-slate-600">Orientações sobre a DECRADI, protocolo humanizado sem revitimização e emissão de B.O. com respeito ao Nome Social...</p>
-              <div class="flex justify-between items-center pt-1">
-                <button onclick="alert('Abrindo protocolo de atendimento da DECRADI...')" class="font-bold text-slate-900 hover:underline">Ver Protocolo →</button>
-                <button class="text-slate-400">🔖</button>
-              </div>
-            </div>
-
-            <!-- Guia 3: Transcidadania -->
-            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] border-l-4 border-l-emerald-600 shadow-xs space-y-1.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[10.5px]">Trabalho & Renda</span>
-                <span class="text-slate-500">🕒 2 min de leitura</span>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Programa Transcidadania SP: Abertura de novas vagas e apoio psicossocial</h3>
-              <p class="text-slate-600">Auxílio mensal para conclusão do ciclo educacional e encaminhamento qualificado para o mercado de trabalho municipal...</p>
-              <div class="flex justify-between items-center pt-1">
-                <button onclick="alert('Consultando editais abertos do Transcidadania...')" class="font-bold text-slate-900 hover:underline">Consultar Inscrição →</button>
-                <button class="text-slate-400">🔖</button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 5: ÁREA PROFISSIONAL (Stitch Tela 5) -->
+      <!-- TELA 4: DIREITOS & IA (Conexão com Gemini 3.5 Flash-Lite / Agno) -->
       <!-- ========================================== -->
-      <section id="screen-profissional" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header Profissional -->
-        <div class="bg-white px-4 py-3 border-b border-[#E2D9CF] flex justify-between items-center sticky top-0 z-30">
+      <section id="screen-direitos" class="screen-panel hidden min-h-full pb-6">
+        <header class="bg-white px-4 h-14 border-b border-neutral-200 flex items-center justify-between sticky top-0 z-30">
           <div class="flex items-center gap-2.5">
-            <div class="px-2 py-1 rounded-md bg-[#0B192C] text-white font-extrabold text-xs">SUS</div>
-            <div>
-              <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">EDUCAÇÃO PERMANENTE</span>
-              <span class="text-sm font-extrabold text-slate-900">Portal do Profissional</span>
-            </div>
+            <button onclick="toggleSidebar(true)" class="w-9 h-9 -ml-1 rounded-xl hover:bg-neutral-100 flex items-center justify-center text-neutral-700">
+              <span class="material-symbols-outlined text-[22px]">menu</span>
+            </button>
+            <h1 class="text-sm font-bold text-neutral-900">Direitos &amp; Síntese por IA</h1>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> UBS Ativa
-          </span>
-        </div>
+          <button onclick="toggleDisguise(true)" class="h-8 px-2.5 rounded-xl bg-neutral-100 text-neutral-800 flex items-center gap-1 text-[11px] font-semibold">
+            <span class="material-symbols-outlined text-[15px] text-brand-navy icon-fill">visibility_off</span>
+            <span>Ocultar</span>
+          </button>
+        </header>
 
-        <!-- Conteúdo Profissional -->
-        <div class="p-4 space-y-3">
-          <!-- Perfil do Médico -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs flex items-center gap-3.5">
-            <div class="relative">
-              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-full object-cover border-2 border-slate-100" />
-              <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold border-2 border-white">✓</span>
-            </div>
-            <div class="flex-1 text-xs">
-              <div class="flex justify-between items-baseline">
-                <h3 class="font-extrabold text-slate-900 text-sm">Dr. Marcelo Ramos</h3>
-                <span class="text-[11px] font-semibold text-slate-500">CRM 182.904</span>
-              </div>
-              <p class="text-slate-600 mb-1.5">Médico de Família • UBS República (CRS Centro)</p>
-              <span class="px-2 py-0.5 rounded-full bg-[#EBF5FB] border border-[#BAE6FD] text-[#0284C7] font-bold text-[10.5px]">
-                🛡️ Habilitação Sampa Trans em andamento
+        <div class="p-4 space-y-3.5">
+          <!-- Campo de Pergunta Interativa para a IA -->
+          <div class="bg-white rounded-2xl p-3.5 border border-neutral-200 shadow-2xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-navy uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-brand-navy icon-fill">neurology</span>
+                Tire Dúvidas com o Assistente SUS
               </span>
+              <span class="text-[10px] text-status-green bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">Gemini 3.5 Flash-Lite</span>
             </div>
-          </div>
-
-          <!-- Ferramentas Rápidas -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center text-xs">
-              <span class="font-extrabold text-slate-900 flex items-center gap-1 uppercase tracking-wide">
-                💼 FERRAMENTAS RÁPIDAS DE CONSULTÓRIO
-              </span>
-              <span class="text-slate-500 text-[11px]">Protocolos 2026</span>
+            
+            <div class="flex items-center bg-canvas border border-neutral-200 rounded-xl px-3 py-1">
+              <input type="text" id="ai-query-input" placeholder="Ex: Como retificar o nome no cartório?" value="Como funciona a retificação de nome no cartório e início de hormônio?" class="bg-transparent text-xs text-neutral-900 flex-1 outline-none font-medium py-1.5" />
             </div>
 
-            <div class="grid grid-cols-2 gap-2.5">
-              <button onclick="alert('Calculadora Hormonal:\n- Valerato Estradiol: 2 a 4mg/dia\n- Espironolactona: 50 a 100mg/dia\n- Cipionato de Testosterona: 200mg a cada 2-3 semanas')" class="bg-white rounded-2xl p-3.5 border border-[#D6C2AC] text-left shadow-xs hover:bg-slate-50 transition-all">
-                <div class="w-8 h-8 rounded-lg bg-[#EBF5FB] text-[#0284C7] flex items-center justify-center mb-2 font-bold text-sm">🧮</div>
-                <b class="text-xs text-slate-900 block">Calculadora Hormonal</b>
-                <span class="text-[10.5px] text-slate-500">Doses, intervalos e exames</span>
-              </button>
-
-              <button onclick="alert('Guia Rápido Sampa Trans:\n1. Acolhimento na porta aberta com Nome Social\n2. Inserção no SIGA Saúde código Z76.8\n3. Prescrição imediata de PrEP/PEP')" class="bg-white rounded-2xl p-3.5 border border-[#D6C2AC] text-left shadow-xs hover:bg-slate-50 transition-all">
-                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2 font-bold text-sm">📖</div>
-                <b class="text-xs text-slate-900 block">Guia Sampa Trans</b>
-                <span class="text-[10.5px] text-slate-500">PDF rápido de condutas</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Card Progresso Formação -->
-          <div class="bg-white rounded-2xl border border-[#D6C2AC] overflow-hidden shadow-xs">
-            <div class="h-1 bg-[#0B192C]"></div>
-            <div class="p-4 space-y-2.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 rounded bg-[#EBF5FB] text-[#0284C7] font-extrabold text-[10px]">EDUCAÇÃO PERMANENTE SUS</span>
-                <span class="bg-slate-100 font-extrabold px-2 py-0.5 rounded-full text-slate-800">65%</span>
-              </div>
-              <h3 class="font-extrabold text-slate-900 text-sm">Formação em Saúde Integral LGBTQIAPN+</h3>
-              <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div class="w-[65%] h-full bg-[#0B192C]"></div>
-              </div>
-              <div class="flex justify-between text-slate-600 text-[11px] font-semibold">
-                <span>✓ 2 de 4 módulos concluídos</span>
-                <b class="text-slate-900">2 aulas restantes</b>
-              </div>
-            </div>
-          </div>
-
-          <!-- Aula Atual Ativa -->
-          <div class="bg-white rounded-2xl p-4 border-2 border-[#0B192C] shadow-sm space-y-2 text-xs">
-            <div class="flex justify-between items-center">
-              <span class="px-2 py-0.5 rounded bg-[#0B192C] text-white font-extrabold text-[10px]">MÓDULO ATUAL • AULA 4 DE 6</span>
-              <span class="text-slate-500 font-medium">🕒 12 min restantes</span>
-            </div>
-            <h3 class="font-extrabold text-slate-900 text-sm leading-snug">
-              Direitos Civis, Quebra de Estigma e Notificação de Violência Institucional
-            </h3>
-            <p class="text-slate-600">Protocolos de acolhimento sem revitimização, uso do nome social no prontuário e linha direta de apoio à vítima.</p>
-            <button onclick="alert('Iniciando vídeo-aula interativa de 12 minutos...')" class="w-full h-11 rounded-xl bg-[#0B192C] text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-800">
-              ▶ Continuar Aula • 12 min
+            <button onclick="runAIConsultation()" id="ai-submit-btn" class="w-full h-10 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all">
+              <span class="material-symbols-outlined text-[16px] icon-fill">auto_awesome</span>
+              <span>Consultar IA (Agno + Gemini)</span>
             </button>
           </div>
 
-          <!-- Todos os Módulos -->
-          <div class="space-y-1.5">
-            <span class="font-extrabold text-slate-900 text-xs block uppercase">TODOS OS MÓDULOS</span>
-
-            <div class="bg-white rounded-xl p-3 border border-[#D6C2AC] flex justify-between items-center text-xs">
-              <div class="flex items-center gap-2.5">
-                <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center border border-emerald-200">✓</span>
-                <div>
-                  <b class="text-slate-900 block">1. Acolhimento e Nome Social na Recepção</b>
-                  <span class="text-emerald-700 text-[10.5px] font-semibold">Concluído • Nota 10</span>
-                </div>
-              </div>
-              <button onclick="alert('Revisando Módulo 1...')" class="font-bold text-[#0B192C] hover:underline">Revisar</button>
+          <!-- Card Dinâmico da IA (Estrutura ResumoDireitoSUS) -->
+          <div id="ai-response-card" class="bg-white rounded-2xl border border-brand-blue/60 p-4 shadow-2xs space-y-3 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-navy bg-brand-blue/25 px-2.5 py-0.5 rounded-full">
+                <span class="material-symbols-outlined text-[14px] icon-fill">auto_awesome</span>
+                <span id="ai-card-badge">Resumo Gerado por IA</span>
+              </span>
+              <span class="text-[11px] text-neutral-400" id="ai-card-law">Portaria MS nº 2.803 revisada</span>
             </div>
 
-            <div class="bg-white rounded-xl p-3 border border-[#D6C2AC] flex justify-between items-center text-xs">
-              <div class="flex items-center gap-2.5">
-                <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center border border-emerald-200">✓</span>
-                <div>
-                  <b class="text-slate-900 block">2. Manejo Clínico de Hormonioterapia</b>
-                  <span class="text-emerald-700 text-[10.5px] font-semibold">Concluído • Protocolo SUS</span>
-                </div>
-              </div>
-              <button onclick="alert('Revisando Módulo 2...')" class="font-bold text-[#0B192C] hover:underline">Revisar</button>
+            <div>
+              <h2 class="text-sm font-bold text-neutral-900" id="ai-card-title">Resumo com IA: Direitos na Rede SUS 2026</h2>
+              <p class="text-xs text-neutral-600 mt-1" id="ai-card-summary">
+                Garantia de acolhimento integral, respeito à identidade de gênero e acesso desburocratizado a serviços de saúde pelo SUS em São Paulo.
+              </p>
             </div>
+            
+            <ul class="space-y-2 text-xs text-neutral-700" id="ai-card-points">
+              <li class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
+                <span><strong>Nome Social Obrigatório:</strong> O uso do Nome Social é garantido por lei em qualquer unidade da rede municipal e estadual, sem exigência de documento retificado prévio.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
+                <span><strong>Profilaxia PEP 72 Horas:</strong> A Profilaxia Pós-Exposição (PEP) é gratuita e deve ser iniciada prioritariamente nas primeiras 2h até no máximo 72h após exposição.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span>
+                <span><strong>Processo Transexualizador:</strong> Centros Especializados municipais (ex: Janaina Lima) oferecem equipe multiprofissional contínua para o início seguro de hormonização.</span>
+              </li>
+            </ul>
 
-            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 flex justify-between items-center text-xs opacity-75">
-              <div class="flex items-center gap-2.5">
-                <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-500 font-bold flex items-center justify-center">🔒</span>
-                <div>
-                  <b class="text-slate-600 block">4. Avaliação Prática e Validação Técnica</b>
-                  <span class="text-slate-400 text-[10.5px]">Bloqueado até concluir módulo 3</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Métricas de Impacto -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2 text-xs">
-            <div class="flex justify-between items-center">
-              <div>
-                <b class="text-slate-900 block uppercase">IMPACTO NA SUA UNIDADE</b>
-                <span class="text-[10.5px] text-slate-500">Métricas anônimas da UBS República nos últimos 30 dias</span>
-              </div>
-              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10.5px]">Auditado SUS</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-center pt-1">
-              <div class="bg-[#FAF8F5] p-3 rounded-xl border border-[#E9E1D7]">
-                <span class="text-2xl font-black text-slate-900 block">48</span>
-                <span class="text-[10.5px] font-semibold text-slate-600">Pacientes Acolhidos</span>
-              </div>
-              <div class="bg-[#FAF8F5] p-3 rounded-xl border border-[#E9E1D7]">
-                <span class="text-2xl font-black text-emerald-700 block">98%</span>
-                <span class="text-[10.5px] font-semibold text-slate-600">Respeito ao Nome Social</span>
-              </div>
+            <div class="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
+              <span class="text-neutral-500 text-[11px]" id="ai-card-action">Ação: Procure a UBS de referência</span>
+              <button onclick="copyAIText()" class="text-brand-navy font-semibold hover:underline flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                <span>Copiar</span>
+              </button>
             </div>
           </div>
+
+          <!-- Guia Cartório (Estático) -->
+          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-1.5">
+            <span class="text-[10px] font-bold uppercase text-purple-800 bg-purple-50 px-2 py-0.5 rounded">Registro Civil • Provimento 73 CNJ</span>
+            <h3 class="text-sm font-bold text-neutral-900">Retificação de prenome e gênero gratuita nos cartórios de SP</h3>
+            <p class="text-xs text-neutral-500 leading-relaxed">Veja como emitir a declaração de hipossuficiência para isenção total de taxas cartorárias sem precisar de advogado ou laudo médico.</p>
+          </article>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 6: ACESSO HUMANIZADO & LOGIN (SUS / Gov.br / B2B) -->
+      <!-- TELA 5: LOGIN CLEAN & FLAT (SEM CARA DE IA E SEM NAVBAR EMBAIXO!) -->
       <!-- ========================================== -->
-      <section id="screen-login" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header Unificado 56px -->
-        <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
-          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          </button>
-          <div class="text-center">
-            <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">REDE SAMPA TRANS</span>
-            <span class="text-sm font-bold text-slate-900">Acesso Seguro & Login</span>
+      <section id="screen-login" class="screen-panel hidden min-h-full bg-white flex flex-col justify-between p-6">
+        <div>
+          <div class="flex items-center justify-between mb-6">
+            <button onclick="goBack()" class="w-9 h-9 -ml-2 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-800">
+              <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+            <button onclick="toggleDisguise(true)" class="text-xs font-semibold text-neutral-500 hover:text-neutral-800 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">visibility_off</span>
+              <span>Ocultar tela</span>
+            </button>
           </div>
-          <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
-            🛡️ Disfarçar
+
+          <!-- Marca Institucional Sóbria -->
+          <div class="mb-6">
+            <div class="inline-flex items-center gap-1.5 text-brand-navy font-bold text-xs mb-2">
+              <span class="w-2 h-2 rounded-full bg-brand-navy"></span>
+              <span>REDE SAMPA TRANS • SMS-SP</span>
+            </div>
+            <h1 class="text-2xl font-bold text-neutral-900 tracking-tight" id="login-title">Identificação Segura</h1>
+            <p class="text-xs text-neutral-500 mt-1 leading-relaxed" id="login-subtitle">
+              A consulta ao mapa é livre. Entre apenas se desejar salvar unidades favoritas ou avaliar atendimentos com seu Nome Social.
+            </p>
+          </div>
+
+          <!-- Seletor Fino e Minimalista -->
+          <div class="grid grid-cols-2 bg-neutral-100 p-1 rounded-xl mb-6 text-xs">
+            <button onclick="switchLoginProfile('cidadao')" id="login-tab-cidadao" class="py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all">
+              Cidadão (SUS)
+            </button>
+            <button onclick="switchLoginProfile('profissional')" id="login-tab-prof" class="py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all">
+              Profissional de Saúde
+            </button>
+          </div>
+
+          <!-- FORMULÁRIO 1: CIDADÃO -->
+          <div id="login-panel-cidadao" class="space-y-4">
+            <button onclick="simulateLogin('cidadao', 'Alex Silva')" class="w-full h-12 rounded-xl bg-[#1351B4] hover:bg-[#0C326F] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all">
+              <span>Entrar com</span>
+              <span class="font-black text-base tracking-tight">gov.br</span>
+            </button>
+
+            <div class="relative flex py-1 items-center">
+              <div class="flex-grow border-t border-neutral-200"></div>
+              <span class="flex-shrink mx-3 text-[11px] text-neutral-400">ou use seu Cartão SUS</span>
+              <div class="flex-grow border-t border-neutral-200"></div>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">CPF ou Cartão Nacional de Saúde (CNS)</label>
+                <input type="text" placeholder="000.000.000-00" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-[11px] font-semibold text-neutral-700">Senha</label>
+                  <a href="#" class="text-[11px] text-brand-navy font-medium hover:underline">Esqueci a senha</a>
+                </div>
+                <div class="relative flex items-center">
+                  <input type="password" placeholder="Digite sua senha" class="w-full h-11 pl-3.5 pr-10 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
+                  <button type="button" class="absolute right-3 text-neutral-400 hover:text-neutral-600">
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="simulateLogin('cidadao', 'Alex Silva')" class="w-full h-11 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs transition-all">
+              Acessar Conta
+            </button>
+          </div>
+
+          <!-- FORMULÁRIO 2: PROFISSIONAL (CRM / COREN) -->
+          <div id="login-panel-profissional" class="space-y-4 hidden">
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" class="py-2 rounded-lg border-2 border-brand-navy bg-brand-navy/5 text-brand-navy font-bold text-xs">CRM-SP</button>
+              <button type="button" class="py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50">COREN-SP</button>
+              <button type="button" class="py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50">CRP / CRESS</button>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Número do Registro Profissional</label>
+                <input type="text" value="182904" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-semibold text-neutral-900 focus:bg-white focus:border-brand-navy outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Senha SIGA Saúde / SMS-SP</label>
+                <input type="password" value="••••••••" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none" />
+              </div>
+            </div>
+
+            <button onclick="simulateLogin('profissional', 'Dr. Marcelo Ramos')" class="w-full h-11 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs transition-all">
+              Entrar no Portal Clínico
+            </button>
+          </div>
+        </div>
+
+        <!-- Rodapé Minimalista de Saída para Modo Anônimo -->
+        <div class="pt-6 border-t border-neutral-100 text-center">
+          <button onclick="showScreen('screen-map')" class="text-xs font-semibold text-neutral-600 hover:text-neutral-900 inline-flex items-center gap-1.5">
+            <span>Continuar sem conta (Navegação Anônima)</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
           </button>
         </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TELA 6: AMBIENTE EXCLUSIVO DO PROFISSIONAL (Sem Navbar de Paciente!) -->
+      <!-- ========================================== -->
+      <section id="screen-profissional" class="screen-panel hidden min-h-full pb-8">
+        <header class="bg-brand-navy text-white px-4 h-14 flex justify-between items-center sticky top-0 z-30">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[20px] text-brand-blue">clinical_notes</span>
+            <div>
+              <span class="text-[9px] uppercase tracking-wider text-brand-blue block leading-none">Ambiente Clínico Restrito</span>
+              <span class="text-xs font-bold">Portal do Profissional SUS</span>
+            </div>
+          </div>
+          <button onclick="showScreen('screen-map')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-medium flex items-center gap-1">
+            <span>Sair</span>
+            <span class="material-symbols-outlined text-[14px]">logout</span>
+          </button>
+        </header>
 
         <div class="p-4 space-y-3.5 text-xs">
-          <!-- Card de Boas-Vindas & Acolhimento -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded bg-[#0B192C] text-white font-extrabold text-[10px]">SUS</span>
-              <span class="text-[10px] font-bold text-slate-500 tracking-wider">SÃO PAULO • SAÚDE INTEGRAL</span>
+          <!-- Identificação Médica -->
+          <div class="bg-white rounded-2xl p-4 border border-neutral-200 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-brand-navy text-white font-bold flex items-center justify-center text-sm shrink-0">
+              MR
             </div>
-            <h2 class="text-base font-extrabold text-slate-900">Bem-vinde à Rede Sampa Trans</h2>
-            <p class="text-slate-600 leading-relaxed">
-              Navegação segura para cuidados em saúde, hormonização, profilaxias (PrEP/PEP) e garantia irrestrita de direitos.
-            </p>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between">
+                <h3 class="font-bold text-neutral-900 text-sm">Dr. Marcelo Ramos</h3>
+                <span class="text-[11px] text-neutral-500">CRM 182.904</span>
+              </div>
+              <p class="text-neutral-500 truncate">Médico de Família • UBS República</p>
+            </div>
           </div>
 
-          <!-- Segmented Control de Perfil (Cidadão vs Profissional) -->
-          <div class="grid grid-cols-2 bg-slate-200 p-1 rounded-xl gap-1">
-            <button onclick="switchLoginProfile('cidadao')" id="login-tab-cidadao" class="py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all">
-              👤 Cidadão / Usuário
+          <!-- Utilitários Rápidos Point-of-Care -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="alert('Protocolo SMS-SP:\n• Valerato de Estradiol: 2 a 6mg/dia VO\n• Cipionato de Testosterona: 200mg IM a cada 14-21 dias')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
+              <span class="material-symbols-outlined text-[22px] text-brand-navy">calculate</span>
+              <strong class="block text-neutral-900">Dosagem Hormonal</strong>
+              <span class="text-[11px] text-neutral-500 block">Tabelas e manejo seguro</span>
             </button>
-            <button onclick="switchLoginProfile('profissional')" id="login-tab-prof" class="py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all">
-              🩺 Profissional SUS
+
+            <button onclick="alert('Código CID / SIGA:\n• Z76.8 - Processo Transexualizador\n• Priorizar Nome Social no cabeçalho da guia')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
+              <span class="material-symbols-outlined text-[22px] text-status-green">menu_book</span>
+              <strong class="block text-neutral-900">Guia de Encaminhamento</strong>
+              <span class="text-[11px] text-neutral-500 block">Fluxo SIGA Saúde SP</span>
             </button>
           </div>
 
-          <!-- PAINEL CIDADÃO -->
-          <div id="login-panel-cidadao" class="space-y-3">
-            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
-              <!-- Aviso Trauma-Informed de Nome Social -->
-              <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2 text-emerald-900">
-                <span class="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">✓</span>
-                <div>
-                  <b class="block text-emerald-950 mb-0.5">Garantia Absoluta do Nome Social</b>
-                  <p class="text-[11px] text-emerald-800 leading-snug">Você é acolhide e identificado pelo seu Nome Social desde o primeiro acesso, sem necessidade de retificação civil prévia.</p>
-                </div>
-              </div>
-
-              <!-- Botão Oficial Gov.br -->
-              <button onclick="simulateLogin('cidadao', 'Alex Silva')" class="w-full h-12 rounded-xl bg-[#002B7F] hover:bg-[#002060] text-white font-bold flex items-center justify-center gap-2 shadow-sm transition-all">
-                <span class="text-base font-black tracking-tight">gov.br</span>
-                <span>Entrar com conta gov.br</span>
-              </button>
-
-              <div class="flex items-center my-1">
-                <div class="flex-1 h-px bg-slate-200"></div>
-                <span class="px-2 text-[10.5px] font-semibold text-slate-400">ou acesse com Cartão SUS</span>
-                <div class="flex-1 h-px bg-slate-200"></div>
-              </div>
-
-              <!-- Inputs -->
-              <div class="space-y-2">
-                <div>
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CPF OU CARTÃO NACIONAL DE SAÚDE (CNS)</label>
-                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
-                    <span class="mr-2 text-slate-400">💳</span>
-                    <input type="text" placeholder="000.000.000-00 ou 15 dígitos do CNS" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">SENHA DE ACESSO</label>
-                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
-                    <span class="mr-2 text-slate-400">🔒</span>
-                    <input type="password" placeholder="Sua senha cadastrada" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
-                    <button class="text-slate-400 text-xs">👁️</button>
-                  </div>
-                </div>
-              </div>
-
-              <button onclick="simulateLogin('cidadao', 'Usuário SUS')" class="w-full h-12 bg-[#0B192C] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center transition-all">
-                Entrar na Minha Conta
-              </button>
-
-              <!-- OPÇÃO CRÍTICA TRAUMA-INFORMED: ENTRAR ANÔNIMO -->
-              <div class="pt-3 border-t border-slate-100 text-center space-y-1.5">
-                <button onclick="simulateLogin('anonimo', null)" class="w-full h-11 bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#D6C2AC] rounded-xl font-bold text-slate-900 flex items-center justify-center gap-2 transition-all">
-                  <span>🛡️</span>
-                  <span>Continuar sem Login (Acesso Anônimo Seguro)</span>
-                </button>
-                <p class="text-[10.5px] text-slate-500 leading-tight">
-                  Zero cadastro. Não salvamos cookies nem histórico de busca para sua total segurança física e digital.
-                </p>
-              </div>
+          <!-- Trilha de Capacitação -->
+          <div class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-bold uppercase text-brand-navy bg-brand-blue/25 px-2 py-0.5 rounded">Trilha de Habilitação</span>
+              <span class="font-bold text-brand-navy">65% concluído</span>
             </div>
-          </div>
-
-          <!-- PAINEL PROFISSIONAL SUS -->
-          <div id="login-panel-profissional" class="space-y-3 hidden">
-            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-bold text-[#0284C7] uppercase tracking-wide">PORTAL B2B • EDUCAÇÃO PERMANENTE</span>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> SMS-SP Homologado
-                </span>
-              </div>
-
-              <div>
-                <h3 class="font-extrabold text-slate-900 text-sm">Acesso para Equipes de Saúde</h3>
-                <p class="text-slate-500 text-[11px]">Habilitação técnica para médicos de família, enfermeiros e assistentes sociais da rede municipal.</p>
-              </div>
-
-              <!-- Seletor Conselho -->
-              <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CONSELHO PROFISSIONAL</label>
-                <div class="grid grid-cols-3 gap-2">
-                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-[#0B192C] text-white">CRM (Médicos)</button>
-                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200">COREN</button>
-                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200">CRP</button>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <div>
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">NÚMERO DO REGISTRO (UF: SP)</label>
-                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
-                    <span class="mr-2 text-slate-400">🎖️</span>
-                    <input type="text" value="182.904-SP" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">SENHA CORPORATIVA / SIGA SAÚDE</label>
-                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
-                    <span class="mr-2 text-slate-400">🔒</span>
-                    <input type="password" value="••••••••••••" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
-                  </div>
-                </div>
-              </div>
-
-              <button onclick="simulateLogin('profissional', 'Dr. Marcelo Ramos')" class="w-full h-12 bg-[#0B192C] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center transition-all">
-                Validar Credenciais e Entrar
-              </button>
-
-              <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#E9E1D7] space-y-1 text-[11px] text-slate-700">
-                <b class="text-slate-900 block font-bold">O que você acessa ao entrar:</b>
-                <p>• Calculadora hormonal clínica com metas laboratoriais</p>
-                <p>• Protocolos de conduta rápida e códigos SIGA (Z76.8)</p>
-                <p>• Certificação oficial pela Escola Municipal de Saúde</p>
-              </div>
+            <h4 class="font-bold text-sm text-neutral-900">Saúde Integral e Acolhimento LGBTQIAPN+</h4>
+            <div class="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div class="w-[65%] h-full bg-brand-navy"></div>
             </div>
-          </div>
-
-          <!-- Rodapé de Conformidade & LGPD -->
-          <div class="text-center text-slate-500 text-[10.5px] space-y-1 pt-1">
-            <p class="flex items-center justify-center gap-1">
-              <span>🔒</span> Ambiente seguro sob protocolo SUS SP • Conformidade LGPD
-            </p>
+            <button onclick="alert('Reproduzindo Módulo 3...')" class="w-full h-10 rounded-xl bg-brand-navy text-white font-semibold flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              <span>Continuar Módulo 3 (12 min)</span>
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- ========================================== -->
-      <!-- MODAL DE CAMUFLAGEM / DISFARÇAR -->
-      <!-- ========================================== -->
-      <div id="disguise-modal" class="hidden absolute inset-0 bg-slate-50 z-50 p-6 flex flex-col justify-between">
+      <!-- MODAL DE CAMUFLAGEM (OCULTAR TELA) -->
+      <div id="disguise-modal" class="hidden absolute inset-0 bg-white z-50 p-6 flex flex-col justify-between">
         <div class="space-y-4">
-          <div class="flex justify-between items-center border-b pb-3 border-slate-200">
-            <span class="font-bold text-slate-800 text-sm flex items-center gap-1.5">⛅ Clima & Tempo SP</span>
-            <span class="text-xs text-slate-400">14:30 • Atualizado</span>
+          <div class="flex justify-between items-center border-b pb-3 border-neutral-200">
+            <span class="font-bold text-neutral-700 text-xs uppercase tracking-wider">Bloco de Notas</span>
+            <span class="text-xs text-neutral-400">Sincronizado</span>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs text-slate-500 font-medium">São Paulo, SP</span>
-            <div class="flex justify-between items-baseline mt-1">
-              <span class="text-4xl font-extrabold text-slate-900">23°C</span>
-              <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Parcialmente Nublado</span>
-            </div>
-            <p class="text-xs text-slate-500 mt-2">Umidade: 62% • Vento: 14 km/h • Sem previsão de chuva para a próxima hora.</p>
-          </div>
-          <div class="space-y-2">
-            <span class="text-[11px] font-bold text-slate-400 uppercase">Notícias do Dia</span>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700">
-              Linha 1-Azul do Metrô opera com intervalos regulares nesta tarde.
-            </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700">
-              Previsão de temperatura amena para o final de semana na capital.
-            </div>
+          <div class="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs text-neutral-600">
+            <strong class="text-neutral-900 block">Lista de Compras da Semana</strong>
+            <p>• Café em pó e filtro</p>
+            <p>• Leite aveia / desnatado</p>
+            <p>• Sabonete neutro e papel toalha</p>
           </div>
         </div>
-        <div class="text-center pt-4 border-t border-slate-200">
-          <button onclick="toggleDisguise(false)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-full text-xs font-bold transition-all">
-            ← Retornar ao app Sampa Trans
-          </button>
-        </div>
+        <button onclick="toggleDisguise(false)" class="w-full py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-semibold">
+          Fechar notas
+        </button>
       </div>
+
     </div>
 
-    <!-- BARRA DE NAVEGAÇÃO INFERIOR GLOBAL FIXA -->
-    <nav class="h-16 bg-white/95 backdrop-blur-md border-t border-[#E2D9CF] flex items-center justify-around px-4 sticky bottom-0 z-40 shrink-0">
-      <!-- Tab 1: Rede & Mapa -->
-      <button onclick="showScreen('screen-map')" id="nav-map" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-900 font-bold bg-[#EBF5FB]">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-        <span class="text-[10.5px]">Rede & Mapa</span>
+    <!-- ========================================== -->
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR (EXCLUSIVA DO CIDADÃO - OCULTA NO LOGIN E NO MÉDICO!) -->
+    <!-- ========================================== -->
+    <nav id="citizen-bottom-nav" class="h-16 bg-white border-t border-neutral-200 flex items-center justify-around px-2 sticky bottom-0 z-30 shrink-0">
+      <button onclick="showScreen('screen-map')" id="nav-map" class="nav-tab flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl text-brand-navy font-bold">
+        <span class="material-symbols-outlined text-[22px] icon-fill">map</span>
+        <span class="text-[10px]">Mapa &amp; Rede</span>
       </button>
 
-      <!-- Tab 2: Direitos & IA -->
-      <button onclick="showScreen('screen-direitos')" id="nav-direitos" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-500 font-medium hover:text-slate-900">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-        <span class="text-[10.5px]">Direitos & IA</span>
+      <button onclick="showScreen('screen-direitos')" id="nav-direitos" class="nav-tab flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl text-neutral-500 font-medium hover:text-neutral-900">
+        <span class="material-symbols-outlined text-[22px]">balance</span>
+        <span class="text-[10px]">Direitos &amp; IA</span>
       </button>
 
-      <!-- Tab 3: Área Profissional -->
-      <button onclick="showScreen('screen-profissional')" id="nav-profissional" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-500 font-medium hover:text-slate-900">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        <span class="text-[10.5px]">Área Profissional</span>
+      <button onclick="showScreen('screen-login')" id="nav-conta" class="nav-tab flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl text-neutral-500 font-medium hover:text-neutral-900">
+        <span class="material-symbols-outlined text-[22px]">person</span>
+        <span class="text-[10px]" id="nav-conta-label">Minha Conta</span>
       </button>
     </nav>
   </main>
 
-  <!-- SCRIPT DE INICIALIZAÇÃO DO MAPA E CONTROLE DAS 5 TELAS -->
   <script>
     let mapInitialized = false;
     let currentScreen = 'screen-map';
+    let isUserLoggedIn = false;
     const screenHistory = [];
+
+    // Fallback estruturado local idêntico ao modelo Pydantic do backend em IA/agent.py
+    const LOCAL_AI_DATA = {
+      titulo: "Resumo com IA: Direitos na Rede SUS 2026",
+      categoria: "Saúde SUS",
+      base_legal: "Portaria MS nº 2.803 revisada • Protocolo Sampa Trans",
+      resumo_executivo: "Garantia de acolhimento integral, respeito à identidade de gênero e acesso desburocratizado a serviços de saúde pelo SUS em São Paulo.",
+      pontos_chave: [
+        "O uso do Nome Social é garantido por lei em qualquer unidade da rede municipal e estadual, sem exigência de documento retificado prévio.",
+        "A Profilaxia Pós-Exposição (PEP) é gratuita e deve ser iniciada prioritariamente nas primeiras 2h até no máximo 72h após exposição.",
+        "Centros Especializados municipais (ex: Janaina Lima) oferecem equipe multiprofissional contínua para o processo transexualizador."
+      ],
+      acao_recomendada: "Procure a UBS mais próxima ou Centro de Referência Janaina Lima."
+    };
 
     function initLeafletMap() {
       if (mapInitialized) return;
       try {
-        const map = L.map('map-canvas', {
-          zoomControl: false,
-          attributionControl: false
-        }).setView([-23.5489, -46.6388], 14);
+        const map = L.map('map-canvas', { zoomControl: false, attributionControl: false }).setView([-23.5489, -46.6388], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19
-        }).addTo(map);
+        L.circleMarker([-23.5489, -46.6388], {
+          radius: 9, fillColor: '#1E5E43', color: '#FFFFFF', weight: 2.5, fillOpacity: 1
+        }).addTo(map).bindPopup('<b style="font-size:12px">UBS República (Porta Aberta)</b><br><span style="font-size:11px;color:#1E5E43">Aberto agora • 450m</span>');
 
-        // Marcador UBS República (Porta Aberta)
-        const markerRep = L.circleMarker([-23.5489, -46.6388], {
-          radius: 9,
-          fillColor: '#0284C7',
-          color: '#FFFFFF',
-          weight: 2.5,
-          opacity: 1,
-          fillOpacity: 1
-        }).addTo(map);
-        
-        markerRep.bindPopup(`
-          <div style="font-family: inherit; font-size: 12px; min-width: 170px;">
-            <b style="color: #0F172A; font-size: 13px;">UBS República</b><br>
-            <span style="color: #16A34A; font-weight: 700;">● Aberto até 19h</span> • 450m<br>
-            <span style="color: #64748B; font-size: 11px;">Porta Aberta: Testes Rápidos & PrEP</span>
-          </div>
-        `);
-
-        // Marcador CR POP TT Janaina Lima (Especializado)
-        const markerJanaina = L.circleMarker([-23.5321, -46.6450], {
-          radius: 10,
-          fillColor: '#0B192C',
-          color: '#FFFFFF',
-          weight: 3,
-          opacity: 1,
-          fillOpacity: 1
-        }).addTo(map);
-
-        markerJanaina.bindPopup(`
-          <div style="font-family: inherit; font-size: 12px; min-width: 190px;">
-            <b style="color: #0F172A; font-size: 13px;">CR POP TT Janaina Lima</b><br>
-            <span style="color: #0284C7; font-weight: 700;">Ambulatório Especializado TT</span> • 1.8km<br>
-            <button onclick="showScreen('screen-details')" style="margin-top: 6px; padding: 4px 10px; background: #0B192C; color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; width: 100%;">
-              Ver Fluxo Clínico SUS →
-            </button>
-          </div>
-        `);
+        L.circleMarker([-23.5321, -46.6450], {
+          radius: 9, fillColor: '#0B2545', color: '#FFFFFF', weight: 2.5, fillOpacity: 1
+        }).addTo(map).bindPopup('<b style="font-size:12px">CR POP TT Janaina Lima</b><br><span style="font-size:11px">Ambulatório Especializado</span>');
 
         mapInitialized = true;
-      } catch (e) {
-        console.log('Leaflet loaded offline fallback');
+      } catch (e) {}
+    }
+
+    function toggleSidebar(open) {
+      const drawer = document.getElementById('sidebar-drawer');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (open) {
+        backdrop.classList.remove('hidden');
+        drawer.classList.remove('-translate-x-full');
+      } else {
+        backdrop.classList.add('hidden');
+        drawer.classList.add('-translate-x-full');
+      }
+    }
+
+    function openProfessionalLogin() {
+      showScreen('screen-login');
+      switchLoginProfile('profissional');
+    }
+
+    function requireLoginForAction(actionName) {
+      if (!isUserLoggedIn) {
+        showScreen('screen-login');
+        document.getElementById('login-subtitle').textContent = `Entre com seu Cartão SUS ou Gov.br para ${actionName}.`;
+      } else {
+        alert('Salvo com sucesso na sua conta!');
       }
     }
 
     function showScreen(screenId, addToHistory = true) {
-      if (screenId === currentScreen && document.getElementById(screenId) && !document.getElementById(screenId).classList.contains('hidden')) {
-        return;
-      }
-
       if (addToHistory && currentScreen && currentScreen !== screenId) {
         screenHistory.push(currentScreen);
       }
       currentScreen = screenId;
 
-      // Oculta todos os painéis
       document.querySelectorAll('.screen-panel').forEach(p => p.classList.add('hidden'));
       const active = document.getElementById(screenId);
       if (active) active.classList.remove('hidden');
 
-      // Atualiza botões superiores
+      // Oculta a Navbar do Cidadão quando estiver na tela de Login ou no Portal do Médico!
+      const bottomNav = document.getElementById('citizen-bottom-nav');
+      if (screenId === 'screen-login' || screenId === 'screen-profissional') {
+        bottomNav.classList.add('hidden');
+      } else {
+        bottomNav.classList.remove('hidden');
+      }
+
+      // Atualiza barra de bancada no topo
       document.querySelectorAll('.screen-btn').forEach(btn => {
-        btn.classList.remove('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-        btn.classList.add('text-slate-300', 'font-medium');
+        btn.className = 'screen-btn px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white transition-all';
       });
-      const topBtnId = 'btn-' + screenId.replace('screen-', '');
-      const activeTopBtn = document.getElementById(topBtnId);
+      const activeTopBtn = document.getElementById('btn-' + screenId.replace('screen-', ''));
       if (activeTopBtn) {
-        activeTopBtn.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-        activeTopBtn.classList.remove('text-slate-300', 'font-medium');
+        activeTopBtn.className = 'screen-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-neutral-900 transition-all';
       }
 
-      // Atualiza Bottom Nav
+      // Atualiza estado da Navbar Inferior
       document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.classList.remove('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-        tab.classList.add('text-slate-500', 'font-medium');
+        tab.className = 'nav-tab flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl text-neutral-500 font-medium hover:text-neutral-900';
+        const icon = tab.querySelector('.material-symbols-outlined');
+        if (icon) icon.classList.remove('icon-fill');
       });
 
-      if (screenId === 'screen-map' || screenId === 'screen-details' || screenId === 'screen-search') {
-        const navMap = document.getElementById('nav-map');
-        if (navMap) {
-          navMap.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-          navMap.classList.remove('text-slate-500', 'font-medium');
-        }
-      } else if (screenId === 'screen-direitos') {
-        const navDir = document.getElementById('nav-direitos');
-        if (navDir) {
-          navDir.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-          navDir.classList.remove('text-slate-500', 'font-medium');
-        }
-      } else if (screenId === 'screen-profissional') {
-        const navProf = document.getElementById('nav-profissional');
-        if (navProf) {
-          navProf.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-          navProf.classList.remove('text-slate-500', 'font-medium');
-        }
+      let activeNavId = 'nav-map';
+      if (screenId === 'screen-direitos') activeNavId = 'nav-direitos';
+      if (screenId === 'screen-login') activeNavId = 'nav-conta';
+
+      const activeNav = document.getElementById(activeNavId);
+      if (activeNav) {
+        activeNav.className = 'nav-tab flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl text-brand-navy font-bold';
+        const icon = activeNav.querySelector('.material-symbols-outlined');
+        if (icon) icon.classList.add('icon-fill');
       }
 
-      // Se for o mapa, inicializa o Leaflet ou ajusta tamanho
-      if (screenId === 'screen-map') {
-        setTimeout(initLeafletMap, 50);
-      }
+      if (screenId === 'screen-map') setTimeout(initLeafletMap, 50);
     }
 
     function goBack() {
       if (screenHistory.length > 0) {
-        const prev = screenHistory.pop();
-        showScreen(prev, false);
+        showScreen(screenHistory.pop(), false);
       } else {
         showScreen('screen-map', false);
       }
     }
 
     function toggleDisguise(show) {
-      const modal = document.getElementById('disguise-modal');
-      if (show) {
-        modal.classList.remove('hidden');
-      } else {
-        modal.classList.add('hidden');
-      }
+      document.getElementById('disguise-modal').classList.toggle('hidden', !show);
     }
 
     function switchLoginProfile(profile) {
@@ -1136,35 +861,100 @@
       const panelProf = document.getElementById('login-panel-profissional');
 
       if (profile === 'cidadao') {
-        tabCidadao.className = 'py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all';
-        tabProf.className = 'py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all';
+        tabCidadao.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all';
+        tabProf.className = 'py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all';
         panelCidadao.classList.remove('hidden');
         panelProf.classList.add('hidden');
       } else {
-        tabProf.className = 'py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all';
-        tabCidadao.className = 'py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all';
+        tabProf.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all';
+        tabCidadao.className = 'py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all';
         panelProf.classList.remove('hidden');
         panelCidadao.classList.add('hidden');
       }
     }
 
     function simulateLogin(profile, name) {
-      if (profile === 'anonimo') {
-        alert('🛡️ Modo Anônimo Ativado:\nNenhum dado pessoal ou histórico é armazenado. Navegação protegida!');
-        showScreen('screen-map');
-      } else if (profile === 'profissional') {
-        alert(`🩺 Credencial Validada:\nBem-vindo(a), ${name || 'Profissional SUS'}!\nAcesso aos protocolos clínicos e calculadora hormonal liberado.`);
+      if (profile === 'profissional') {
         showScreen('screen-profissional');
       } else {
-        alert(`✓ Acesso Concluído:\nOlá, ${name || 'Usuário'}! Seu Nome Social é garantido em todos os agendamentos e prontuários.`);
+        isUserLoggedIn = true;
+        document.getElementById('sidebar-user-name').textContent = name + ' (Nome Social)';
+        document.getElementById('sidebar-user-status').textContent = 'Cartão SUS Vinculado • Protegido';
+        document.getElementById('nav-conta-label').textContent = 'Alex Silva';
         showScreen('screen-map');
       }
     }
 
-    // Inicia na Tela 1 (Mapa Home)
-    window.onload = function() {
-      initLeafletMap();
-    };
+    // Consulta à IA conectada ao modelo Gemini 3.5 Flash-Lite com fallback resiliente
+    async function runAIConsultation() {
+      const query = document.getElementById('ai-query-input').value.trim();
+      const btn = document.getElementById('ai-submit-btn');
+      const originalText = btn.innerHTML;
+      
+      btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span><span>Consultando Gemini 3.5 Flash-Lite...</span>`;
+      btn.disabled = true;
+
+      try {
+        // Tenta chamada real no endpoint local de IA se o backend estiver rodando
+        const res = await fetch('http://localhost:8000/api/ai/direitos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pergunta: query })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          renderAIResult(data);
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          return;
+        }
+      } catch (e) {
+        console.log('[Pitch Safe Fallback] Backend local não respondeu, acionando fallback estruturado de alta fidelidade.');
+      }
+
+      // Simulação rápida de 600ms com os dados estruturados do agente
+      setTimeout(() => {
+        let result = { ...LOCAL_AI_DATA };
+        if (query.toLowerCase().includes('cartório') || query.toLowerCase().includes('retificação')) {
+          result.titulo = "Retificação de Prenome e Gênero nos Cartórios de SP";
+          result.base_legal = "ADI 4275 (STF) • Provimento nº 73 do CNJ";
+          result.resumo_executivo = "Direito garantido em qualquer Cartório de Registro Civil das Pessoas Naturais (RCPN) sem necessidade de autorização judicial, cirurgia ou laudo médico.";
+          result.pontos_chave = [
+            "Gratuidade total garantida por lei mediante simples declaração de hipossuficiência assinada.",
+            "Não pode ser exigida nenhuma testemunha ou laudo psiquiátrico pelo oficial do cartório.",
+            "A certidão retificada tem o mesmo valor legal e não traz anotações discriminatórias públicas."
+          ];
+          result.acao_recomendada = "Compareça a qualquer RCPN de SP ou agende orientação com a Defensoria Pública.";
+        }
+        renderAIResult(result);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, 600);
+    }
+
+    function renderAIResult(data) {
+      document.getElementById('ai-card-title').textContent = data.titulo;
+      document.getElementById('ai-card-law').textContent = data.base_legal;
+      document.getElementById('ai-card-summary').textContent = data.resumo_executivo;
+      document.getElementById('ai-card-action').textContent = 'Ação: ' + data.acao_recomendada;
+
+      const pointsContainer = document.getElementById('ai-card-points');
+      pointsContainer.innerHTML = '';
+      data.pontos_chave.forEach(p => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-2';
+        li.innerHTML = `<span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span><span>${p}</span>`;
+        pointsContainer.appendChild(li);
+      });
+    }
+
+    function copyAIText() {
+      const summary = document.getElementById('ai-card-summary').textContent;
+      navigator.clipboard.writeText(summary);
+      alert('Síntese jurídica copiada para a área de transferência!');
+    }
+
+    window.onload = initLeafletMap;
   </script>
 </body>
 </html>

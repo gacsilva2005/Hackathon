@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Rede Sampa Trans • Preview Interativo das 4 Telas</title>
+  <title>Rede Sampa Trans • As 5 Telas Completas (Preview Interativo)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Leaflet para o Mapa da Tela 1 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #1E293B;
+      background-color: #0F172A;
       color: #0F172A;
       margin: 0;
       padding: 0;
@@ -30,32 +33,40 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    #map-canvas {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-6 bg-slate-900 text-slate-100">
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-slate-900 text-slate-100">
 
-  <!-- Barra Superior de Controle do Preview -->
-  <header class="w-full max-w-md mb-3 flex items-center justify-between px-2">
+  <!-- BARRA SUPERIOR SELETORA DAS 5 TELAS -->
+  <header class="w-full max-w-lg mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2">
     <div>
       <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        Preview 100% Sem Instalação
+        Rede Sampa Trans • 5 Telas Validadas
       </span>
-      <h1 class="text-sm font-bold text-white">Rede Sampa Trans (4 Telas Ativas)</h1>
+      <h1 class="text-sm font-extrabold text-white">Ecossistema Completo (Google Stitch)</h1>
     </div>
-    <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
-      <button onclick="switchTab('rede'); showSubScreen('search')" class="px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-slate-700 transition-all text-slate-300 active:scale-95" title="Busca & Filtros">Busca</button>
-      <button onclick="switchTab('rede'); showSubScreen('details')" class="px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-slate-700 transition-all text-slate-300 active:scale-95" title="Detalhes da Unidade">Unidade</button>
-      <button onclick="switchTab('direitos')" class="px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-slate-700 transition-all text-slate-300 active:scale-95" title="Direitos & IA">Direitos</button>
-      <button onclick="switchTab('profissional')" class="px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-slate-700 transition-all text-slate-300 active:scale-95" title="Área Profissional">Profissional</button>
+    
+    <!-- Seletor Rápido das 5 Telas -->
+    <div class="flex flex-wrap items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
+      <button onclick="showScreen('screen-map')" id="btn-map" class="screen-btn px-2 py-1 rounded-lg text-xs font-bold bg-[#EBF5FB] text-slate-900 transition-all">1. Mapa Home</button>
+      <button onclick="showScreen('screen-details')" id="btn-details" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">2. Detalhes Unidade</button>
+      <button onclick="showScreen('screen-search')" id="btn-search" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">3. Busca & Filtros</button>
+      <button onclick="showScreen('screen-direitos')" id="btn-direitos" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">4. Direitos & IA</button>
+      <button onclick="showScreen('screen-profissional')" id="btn-profissional" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">5. Profissional</button>
     </div>
   </header>
 
-  <!-- Moldura Móvel Nativa (Phone Shell) -->
+  <!-- MOLDURA MÓVEL DO SMARTPHONE (390x844dp) -->
   <main class="w-full max-w-[412px] h-[860px] max-h-[92vh] bg-[#EFEFEE] rounded-[38px] shadow-2xl border-4 border-slate-700 overflow-hidden relative flex flex-col select-none text-slate-900">
     
-    <!-- Notch do Celular -->
-    <div class="w-full bg-white pt-2 pb-1 px-6 flex justify-between items-center text-[11px] font-bold text-slate-800 z-50">
+    <!-- Notch / Barra de Status -->
+    <div class="w-full bg-white pt-2 pb-1 px-6 flex justify-between items-center text-[11px] font-bold text-slate-800 z-50 shrink-0">
       <span>14:30</span>
       <div class="w-20 h-4 bg-slate-900 rounded-full mx-auto"></div>
       <div class="flex items-center gap-1.5">
@@ -64,170 +75,98 @@
       </div>
     </div>
 
-    <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
-    <div class="flex-1 overflow-y-auto custom-scroll relative">
+    <!-- ÁREA DE TELAS -->
+    <div class="flex-1 overflow-y-auto custom-scroll relative flex flex-col">
 
       <!-- ========================================== -->
-      <!-- TELA 1: BUSCA & FILTROS (Imagem 2) -->
+      <!-- TELA 1: HOME MAP-FIRST COM BOTTOM SHEET (Stitch Tela 1) -->
       <!-- ========================================== -->
-      <section id="screen-search" class="min-h-full pb-20">
-        <!-- Header da Busca -->
-        <div class="bg-white px-4 pt-2 pb-3.5 border-b border-[#E2D9CF] sticky top-0 z-30">
-          <div class="flex items-center justify-between mb-2.5">
-            <button onclick="alert('Histórico de navegação')" class="p-1 text-slate-700 hover:text-black">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            </button>
-            <span class="text-sm font-extrabold uppercase tracking-wider text-slate-900">BUSCA & FILTROS</span>
-            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              <span>Disfarçar</span>
+      <section id="screen-map" class="screen-panel relative flex-1 flex flex-col h-full overflow-hidden">
+        <!-- Header Flutuante de Busca do Mapa -->
+        <div class="absolute top-3 left-3 right-3 z-20 space-y-2">
+          <div class="flex items-center bg-white/95 backdrop-blur-md border border-[#D6C2AC] rounded-full px-3.5 h-12 shadow-md">
+            <svg class="w-4 h-4 text-slate-700 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Buscar UBS, PrEP, acolhimento, endereço..." class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
+            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-[11px] font-bold text-slate-700 shrink-0">
+              🛡️ Modo Seguro
             </button>
           </div>
 
-          <!-- Input de Busca -->
-          <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl px-3 h-11">
-            <svg class="w-4 h-4 text-slate-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" value="Hormonização Zona Leste" class="bg-transparent text-xs font-bold text-slate-900 flex-1 outline-none" />
-            <button class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] mr-2">✕</button>
-            <div class="w-px h-5 bg-slate-300 mr-2"></div>
-            <svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          <!-- Pílulas de Filtros Rápidos sobre o Mapa -->
+          <div class="flex gap-1.5 overflow-x-auto hide-scrollbar text-xs">
+            <span class="px-3 py-1.5 rounded-full bg-[#0B192C] text-white font-bold shrink-0 shadow-xs">Todos os Serviços</span>
+            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Saúde SUS (Sampa Trans)</span>
+            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Acolhimento & Abrigo</span>
+            <span class="px-3 py-1.5 rounded-full bg-white/95 border border-[#D6C2AC] text-slate-700 font-semibold shrink-0 shadow-xs">Segurança / Delegacias</span>
           </div>
         </div>
 
-        <!-- Conteúdo da Busca -->
-        <div class="p-4 space-y-3">
-          <!-- Card de Filtros Aplicados -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span class="text-xs font-extrabold text-slate-900 tracking-wider flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-                FILTROS APLICADOS (3 ATIVOS)
-              </span>
-              <button class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Limpar Filtros</button>
-            </div>
+        <!-- Canvas do Mapa Vetorial (Leaflet com visual minimalista limpo) -->
+        <div id="map-canvas" class="flex-1 bg-slate-200"></div>
 
-            <!-- Tipo de Atendimento -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">TIPO DE ATENDIMENTO</span>
-              <div class="flex flex-wrap gap-1.5">
-                <span class="px-3 py-1 rounded-full bg-[#0B192C] text-white text-xs font-semibold flex items-center gap-1">
-                  ✓ Saúde Integral
-                </span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
-                  Acolhimento & Abrigo
-                </span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
-                  Apoio Jurídico / Delegacias
-                </span>
-              </div>
-            </div>
+        <!-- Bottom Sheet Persistente Ancorado a 45% -->
+        <div class="absolute bottom-0 left-0 right-0 z-20 bg-white rounded-t-[28px] border-t-2 border-[#D6C2AC] shadow-2xl max-h-[52%] flex flex-col">
+          <!-- Grab Handle -->
+          <div class="w-12 h-1.5 bg-[#D6C2AC] rounded-full mx-auto my-2.5"></div>
 
-            <!-- Região da Cidade -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">REGIÃO DA CIDADE</span>
-              <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
-                <span class="px-3 py-1 rounded-full bg-[#EBF5FB] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shrink-0 flex items-center gap-1">
-                  • CRS Leste (Ativa)
-                </span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">
-                  CRS Norte
-                </span>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">
-                  CRS Centro/Oeste
-                </span>
-              </div>
-            </div>
-
-            <!-- Esfera -->
-            <div>
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ESFERA</span>
-              <div class="grid grid-cols-3 bg-slate-100 p-0.5 rounded-xl text-center text-xs">
-                <span class="py-1 text-slate-500 font-medium">Todas</span>
-                <span class="py-1 bg-white font-bold text-slate-900 rounded-lg shadow-2xs">Rede SUS</span>
-                <span class="py-1 text-slate-500 font-medium">Privada Aliada</span>
-              </div>
-            </div>
+          <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
+            <span class="text-xs font-extrabold uppercase tracking-wide text-slate-900">Mais Próximos de Você (São Paulo)</span>
+            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">2 abertas agora</span>
           </div>
 
-          <!-- Subheader Resultados -->
-          <div class="flex items-center justify-between text-xs pt-1">
-            <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-              RESULTADOS ENCONTRADOS (3)
-            </span>
-            <span class="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] text-slate-500 font-medium">
-              Ordenado por proximidade
-            </span>
-          </div>
-
-          <!-- Card 1: Casa Ser -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] text-[10.5px] font-bold border border-[#BAE6FD]">
-                Saúde Integral • CRS Leste
-              </span>
-              <button class="text-slate-400 hover:text-amber-500">🔖</button>
-            </div>
-            <h3 class="font-bold text-slate-900 text-base leading-snug">Casa Ser - Cidade Tiradentes</h3>
-            <p class="text-xs text-slate-600 flex items-center gap-1">
-              📍 Av. Dr. Guilherme de Abreu Sodré, 485
-            </p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">🏥 Hormonização</span>
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Saúde Reprodutiva</span>
-              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span class="text-xs font-semibold text-slate-800">🚌 12 km de você</span>
-              <div class="flex gap-2">
-                <a href="tel:1122851234" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
-                <button onclick="showSubScreen('details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
+          <!-- Lista de Unidades do Bottom Sheet -->
+          <div class="overflow-y-auto p-4 space-y-3 custom-scroll flex-1">
+            <!-- Card 1: UBS República (Porta Aberta 450m) -->
+            <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D6C2AC] space-y-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-extrabold text-slate-900 text-sm">UBS República - Fernanda Sante Limeira</h3>
+                  <p class="text-[11px] text-slate-600">Praça do Patriarca, 100 • <b>450m de você</b> • <span class="text-emerald-700 font-bold">Aberto até 19h</span></p>
+                </div>
+                <button class="text-slate-400">🔖</button>
+              </div>
+              <div class="flex flex-wrap gap-1.5 text-[10.5px]">
+                <span class="px-2 py-0.5 rounded bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Rede Sampa Trans</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">Porta Aberta: Testes Rápidos & PrEP</span>
+              </div>
+              <div class="flex gap-2 pt-1 border-t border-slate-200/60">
+                <a href="tel:1132423756" class="flex-1 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-center text-slate-800 bg-white">Ligar: 3242-3756</a>
+                <button onclick="showScreen('screen-details')" class="flex-1 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold text-center">Como Chegar</button>
               </div>
             </div>
-          </div>
 
-          <!-- Card 2: AMA/UBS Santo André -->
-          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200">
-                Porta Aberta / Atenção Básica
-              </span>
-              <button class="text-slate-400 hover:text-amber-500">🔖</button>
-            </div>
-            <h3 class="font-bold text-slate-900 text-base leading-snug">AMA/UBS Jardim Santo André</h3>
-            <p class="text-xs text-slate-600 flex items-center gap-1">
-              📍 Rua Miguel Ferreira de Melo, 497
-            </p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">✓ Acolhimento Primário</span>
-              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Testes Rápidos</span>
-              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span class="text-xs font-semibold text-slate-800">🧭 14 km de você</span>
-              <div class="flex gap-2">
-                <a href="tel:1129625678" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
-                <button onclick="showSubScreen('details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
+            <!-- Card 2: CR POP TT Janaina Lima (Exige Acolhimento Prévio na UBS) -->
+            <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D6C2AC] space-y-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-extrabold text-slate-900 text-sm">CR POP TT Janaina Lima - Bom Retiro</h3>
+                  <p class="text-[11px] text-slate-600">Rua Jaraguá, 866 • <b>1.8 km de você</b></p>
+                </div>
+                <button class="text-slate-400">🔖</button>
               </div>
+              <!-- Aviso de Precedência / Trauma-Informed -->
+              <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-snug">
+                ⚠️ <b>Atenção de Fluxo:</b> Exige acolhimento prévio na UBS de referência do seu bairro para início da hormonização.
+              </div>
+              <div class="flex flex-wrap gap-1.5 text-[10.5px]">
+                <span class="px-2 py-0.5 rounded bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Ambulatório Especializado TT</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200">Hormonização</span>
+              </div>
+              <button onclick="showScreen('screen-details')" class="w-full py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold text-center">
+                Ver Detalhes & Fluxo Clínico →
+              </button>
             </div>
           </div>
-        </div>
-
-        <!-- Botão Flutuante Mapa -->
-        <div class="p-4 pt-1">
-          <button onclick="alert('Alternando para visão de mapa interativo...')" class="w-full h-12 bg-[#0B192C] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 active:scale-98 transition-all">
-            🗺️ Ver Resultados no Mapa (3)
-          </button>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 2: DETALHES DA UNIDADE & FLUXO (Imagem 1) -->
+      <!-- TELA 2: DETALHES DA UNIDADE & FLUXO (Stitch Tela 2) -->
       <!-- ========================================== -->
-      <section id="screen-details" class="hidden min-h-full pb-20">
+      <section id="screen-details" class="screen-panel hidden min-h-full pb-20">
         <!-- Header Unificado 56px -->
         <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
-          <button onclick="showSubScreen('search')" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800">
+          <button onclick="showScreen('screen-map')" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           </button>
           <div class="text-center">
@@ -393,9 +332,146 @@
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 3: DIREITOS & IA (Imagem 3) -->
+      <!-- TELA 3: BUSCA AVANÇADA E FILTROS CRUZADOS (Stitch Tela 3) -->
       <!-- ========================================== -->
-      <section id="screen-direitos" class="hidden min-h-full pb-20">
+      <section id="screen-search" class="screen-panel hidden min-h-full pb-20">
+        <!-- Header da Busca -->
+        <div class="bg-white px-4 pt-2 pb-3.5 border-b border-[#E2D9CF] sticky top-0 z-30">
+          <div class="flex items-center justify-between mb-2.5">
+            <button onclick="showScreen('screen-map')" class="p-1 text-slate-700 hover:text-black">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </button>
+            <span class="text-sm font-extrabold uppercase tracking-wider text-slate-900">BUSCA & FILTROS</span>
+            <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700">
+              🛡️ Disfarçar
+            </button>
+          </div>
+
+          <!-- Input de Busca -->
+          <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl px-3 h-11">
+            <svg class="w-4 h-4 text-slate-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" value="Hormonização Zona Leste" class="bg-transparent text-xs font-bold text-slate-900 flex-1 outline-none" />
+            <button class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] mr-2">✕</button>
+            <div class="w-px h-5 bg-slate-300 mr-2"></div>
+            <svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          </div>
+        </div>
+
+        <!-- Conteúdo da Busca -->
+        <div class="p-4 space-y-3">
+          <!-- Card de Filtros Aplicados -->
+          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-slate-900 tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                FILTROS APLICADOS (3 ATIVOS)
+              </span>
+              <button class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Limpar Filtros</button>
+            </div>
+
+            <!-- Tipo de Atendimento -->
+            <div>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">TIPO DE ATENDIMENTO</span>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="px-3 py-1 rounded-full bg-[#0B192C] text-white text-xs font-semibold flex items-center gap-1">✓ Saúde Integral</span>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">Acolhimento & Abrigo</span>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">Apoio Jurídico / Delegacias</span>
+              </div>
+            </div>
+
+            <!-- Região da Cidade -->
+            <div>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">REGIÃO DA CIDADE</span>
+              <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+                <span class="px-3 py-1 rounded-full bg-[#EBF5FB] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shrink-0">• CRS Leste (Ativa)</span>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">CRS Norte</span>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shrink-0">CRS Centro/Oeste</span>
+              </div>
+            </div>
+
+            <!-- Esfera -->
+            <div>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ESFERA</span>
+              <div class="grid grid-cols-3 bg-slate-100 p-0.5 rounded-xl text-center text-xs">
+                <span class="py-1 text-slate-500 font-medium">Todas</span>
+                <span class="py-1 bg-white font-bold text-slate-900 rounded-lg shadow-2xs">Rede SUS</span>
+                <span class="py-1 text-slate-500 font-medium">Privada Aliada</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subheader Resultados -->
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              RESULTADOS ENCONTRADOS (3)
+            </span>
+            <span class="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] text-slate-500 font-medium">
+              Ordenado por proximidade
+            </span>
+          </div>
+
+          <!-- Card 1: Casa Ser -->
+          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] text-[10.5px] font-bold border border-[#BAE6FD]">
+                Saúde Integral • CRS Leste
+              </span>
+              <button class="text-slate-400 hover:text-amber-500">🔖</button>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base leading-snug">Casa Ser - Cidade Tiradentes</h3>
+            <p class="text-xs text-slate-600 flex items-center gap-1">📍 Av. Dr. Guilherme de Abreu Sodré, 485</p>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">🏥 Hormonização</span>
+              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Saúde Reprodutiva</span>
+              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="text-xs font-semibold text-slate-800">🚌 12 km de você</span>
+              <div class="flex gap-2">
+                <a href="tel:1122851234" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
+                <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: AMA/UBS Santo André -->
+          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200">
+                Porta Aberta / Atenção Básica
+              </span>
+              <button class="text-slate-400 hover:text-amber-500">🔖</button>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base leading-snug">AMA/UBS Jardim Santo André</h3>
+            <p class="text-xs text-slate-600 flex items-center gap-1">📍 Rua Miguel Ferreira de Melo, 497</p>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">✓ Acolhimento Primário</span>
+              <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-[11px] font-medium text-slate-700">Testes Rápidos</span>
+              <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-bold">SUS Gratuito</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="text-xs font-semibold text-slate-800">🧭 14 km de você</span>
+              <div class="flex gap-2">
+                <a href="tel:1129625678" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-slate-50">Ligar</a>
+                <button onclick="showScreen('screen-details')" class="px-3 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold hover:bg-slate-800">Ver Detalhes →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão Flutuante Mapa -->
+        <div class="p-4 pt-1">
+          <button onclick="showScreen('screen-map')" class="w-full h-12 bg-[#0B192C] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 active:scale-98 transition-all">
+            🗺️ Ver Resultados no Mapa (3)
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TELA 4: DIREITOS & IA (Stitch Tela 4) -->
+      <!-- ========================================== -->
+      <section id="screen-direitos" class="screen-panel hidden min-h-full pb-20">
         <!-- Header Direitos -->
         <div class="bg-white px-4 pt-3 pb-3 border-b border-[#E2D9CF] sticky top-0 z-30">
           <div class="flex items-center justify-between mb-2">
@@ -522,9 +598,9 @@
       </section>
 
       <!-- ========================================== -->
-      <!-- TELA 4: ÁREA PROFISSIONAL (Imagem 4) -->
+      <!-- TELA 5: ÁREA PROFISSIONAL (Stitch Tela 5) -->
       <!-- ========================================== -->
-      <section id="screen-profissional" class="hidden min-h-full pb-20">
+      <section id="screen-profissional" class="screen-panel hidden min-h-full pb-20">
         <!-- Header Profissional -->
         <div class="bg-white px-4 py-3 border-b border-[#E2D9CF] flex justify-between items-center sticky top-0 z-30">
           <div class="flex items-center gap-2.5">
@@ -714,78 +790,116 @@
     </div>
 
     <!-- BARRA DE NAVEGAÇÃO INFERIOR GLOBAL FIXA -->
-    <nav class="h-16 bg-white/95 backdrop-blur-md border-t border-[#E2D9CF] flex items-center justify-around px-4 sticky bottom-0 z-40">
+    <nav class="h-16 bg-white/95 backdrop-blur-md border-t border-[#E2D9CF] flex items-center justify-around px-4 sticky bottom-0 z-40 shrink-0">
       <!-- Tab 1: Rede & Mapa -->
-      <button onclick="switchTab('rede')" id="tab-rede" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-900 font-bold bg-[#EBF5FB]">
+      <button onclick="showScreen('screen-map')" id="nav-map" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-900 font-bold bg-[#EBF5FB]">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
         <span class="text-[10.5px]">Rede & Mapa</span>
       </button>
 
       <!-- Tab 2: Direitos & IA -->
-      <button onclick="switchTab('direitos')" id="tab-direitos" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-500 font-medium hover:text-slate-900">
+      <button onclick="showScreen('screen-direitos')" id="nav-direitos" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-500 font-medium hover:text-slate-900">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
         <span class="text-[10.5px]">Direitos & IA</span>
       </button>
 
       <!-- Tab 3: Área Profissional -->
-      <button onclick="switchTab('profissional')" id="tab-profissional" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-500 font-medium hover:text-slate-900">
+      <button onclick="showScreen('screen-profissional')" id="nav-profissional" class="nav-tab flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-500 font-medium hover:text-slate-900">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
         <span class="text-[10.5px]">Área Profissional</span>
       </button>
     </nav>
   </main>
 
-  <!-- Lógica de Controle do Preview (Zero Dependências) -->
+  <!-- SCRIPT DE INICIALIZAÇÃO DO MAPA E CONTROLE DAS 5 TELAS -->
   <script>
-    let currentTab = 'rede';
-    let currentSubScreen = 'search';
+    let mapInitialized = false;
 
-    function switchTab(tab) {
-      currentTab = tab;
-      
-      // Oculta todas as telas principais
-      document.getElementById('screen-search').classList.add('hidden');
-      document.getElementById('screen-details').classList.add('hidden');
-      document.getElementById('screen-direitos').classList.add('hidden');
-      document.getElementById('screen-profissional').classList.add('hidden');
+    function initLeafletMap() {
+      if (mapInitialized) return;
+      try {
+        const map = L.map('map-canvas', {
+          zoomControl: false,
+          attributionControl: false
+        }).setView([-23.5489, -46.6388], 14);
 
-      // Reseta estilos das abas
-      const tabs = ['rede', 'direitos', 'profissional'];
-      tabs.forEach(t => {
-        const btn = document.getElementById('tab-' + t);
-        btn.classList.remove('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-        btn.classList.add('text-slate-500', 'font-medium');
-      });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19
+        }).addTo(map);
 
-      // Ativa aba selecionada
-      const activeBtn = document.getElementById('tab-' + tab);
-      activeBtn.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
-      activeBtn.classList.remove('text-slate-500', 'font-medium');
+        // Marcador UBS República
+        L.circleMarker([-23.5489, -46.6388], {
+          radius: 9,
+          fillColor: '#0284C7',
+          color: '#FFFFFF',
+          weight: 2.5,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map).bindPopup('<b>UBS República</b><br>450m • Porta Aberta');
 
-      // Exibe tela correspondente
-      if (tab === 'rede') {
-        if (currentSubScreen === 'search') {
-          document.getElementById('screen-search').classList.remove('hidden');
-        } else {
-          document.getElementById('screen-details').classList.remove('hidden');
-        }
-      } else if (tab === 'direitos') {
-        document.getElementById('screen-direitos').classList.remove('hidden');
-      } else if (tab === 'profissional') {
-        document.getElementById('screen-profissional').classList.remove('hidden');
+        // Marcador CR POP TT Janaina Lima
+        L.circleMarker([-23.5321, -46.6450], {
+          radius: 9,
+          fillColor: '#0B192C',
+          color: '#FFFFFF',
+          weight: 2.5,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map).bindPopup('<b>CR POP TT Janaina Lima</b><br>1.8km • Especializado');
+
+        mapInitialized = true;
+      } catch (e) {
+        console.log('Leaflet loaded offline fallback');
       }
     }
 
-    function showSubScreen(screen) {
-      currentSubScreen = screen;
-      if (currentTab === 'rede') {
-        if (screen === 'search') {
-          document.getElementById('screen-search').classList.remove('hidden');
-          document.getElementById('screen-details').classList.add('hidden');
-        } else {
-          document.getElementById('screen-search').classList.add('hidden');
-          document.getElementById('screen-details').classList.remove('hidden');
+    function showScreen(screenId) {
+      // Oculta todos os painéis
+      document.querySelectorAll('.screen-panel').forEach(p => p.classList.add('hidden'));
+      const active = document.getElementById(screenId);
+      if (active) active.classList.remove('hidden');
+
+      // Atualiza botões superiores
+      document.querySelectorAll('.screen-btn').forEach(btn => {
+        btn.classList.remove('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+        btn.classList.add('text-slate-300', 'font-medium');
+      });
+      const topBtnId = 'btn-' + screenId.replace('screen-', '');
+      const activeTopBtn = document.getElementById(topBtnId);
+      if (activeTopBtn) {
+        activeTopBtn.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+        activeTopBtn.classList.remove('text-slate-300', 'font-medium');
+      }
+
+      // Atualiza Bottom Nav
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+        tab.classList.add('text-slate-500', 'font-medium');
+      });
+
+      if (screenId === 'screen-map' || screenId === 'screen-details' || screenId === 'screen-search') {
+        const navMap = document.getElementById('nav-map');
+        if (navMap) {
+          navMap.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+          navMap.classList.remove('text-slate-500', 'font-medium');
         }
+      } else if (screenId === 'screen-direitos') {
+        const navDir = document.getElementById('nav-direitos');
+        if (navDir) {
+          navDir.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+          navDir.classList.remove('text-slate-500', 'font-medium');
+        }
+      } else if (screenId === 'screen-profissional') {
+        const navProf = document.getElementById('nav-profissional');
+        if (navProf) {
+          navProf.classList.add('bg-[#EBF5FB]', 'text-slate-900', 'font-bold');
+          navProf.classList.remove('text-slate-500', 'font-medium');
+        }
+      }
+
+      // Se for o mapa, inicializa o Leaflet
+      if (screenId === 'screen-map') {
+        setTimeout(initLeafletMap, 50);
       }
     }
 
@@ -797,6 +911,11 @@
         modal.classList.add('hidden');
       }
     }
+
+    // Inicia na Tela 1 (Mapa Home)
+    window.onload = function() {
+      initLeafletMap();
+    };
   </script>
 </body>
 </html>

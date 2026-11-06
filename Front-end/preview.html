@@ -60,6 +60,13 @@
       max-width: none !important;
       max-height: none !important;
     }
+    .leaflet-control-attribution {
+      font-size: 8.5px !important;
+      background: rgba(255, 255, 255, 0.75) !important;
+      padding: 0 4px !important;
+      margin: 0 !important;
+      border-top-left-radius: 4px;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-neutral-900 text-neutral-100">
@@ -838,23 +845,14 @@
       try {
         mapInstance = L.map('map-canvas', {
           zoomControl: false,
-          attributionControl: false
+          attributionControl: true
         }).setView([-23.5440, -46.6420], 13);
 
-        // Camada Primária: CartoCDN Positron (Estilo limpo do commit do Sergio)
-        const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          subdomains: 'abcd',
-          maxZoom: 19
-        });
-
-        // Fallback automático: se a rede bloquear a CartoCDN, carrega o OpenStreetMap oficial na hora
-        cartoLayer.on('tileerror', function() {
-          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
-          }).addTo(mapInstance);
-        });
-
-        cartoLayer.addTo(mapInstance);
+        // Camada Base: OpenStreetMap Oficial (100% gratuita, sem exigência de API key)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+        }).addTo(mapInstance);
 
         UBS_UNITS.forEach(u => {
           const marker = L.circleMarker([u.lat, u.lon], {

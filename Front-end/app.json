@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Rede Sampa Trans",
+    "slug": "rede-sampa-trans",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#EFEFEE",
+    "primaryColor": "#0B192C",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.hackathon.redesampatrans"
+    }
+  }
+}

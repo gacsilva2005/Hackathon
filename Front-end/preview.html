@@ -42,23 +42,24 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-slate-900 text-slate-100">
 
-  <!-- BARRA SUPERIOR SELETORA DAS 5 TELAS -->
-  <header class="w-full max-w-lg mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2">
+  <!-- BARRA SUPERIOR SELETORA DAS TELAS -->
+  <header class="w-full max-w-xl mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2">
     <div>
       <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        Rede Sampa Trans • 5 Telas Validadas
+        Rede Sampa Trans • Design System Unificado
       </span>
-      <h1 class="text-sm font-extrabold text-white">Ecossistema Completo (Google Stitch)</h1>
+      <h1 class="text-sm font-extrabold text-white">Ecossistema Completo (Google Stitch & SUS SP)</h1>
     </div>
     
-    <!-- Seletor Rápido das 5 Telas -->
+    <!-- Seletor Rápido das 6 Telas -->
     <div class="flex flex-wrap items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
-      <button onclick="showScreen('screen-map')" id="btn-map" class="screen-btn px-2 py-1 rounded-lg text-xs font-bold bg-[#EBF5FB] text-slate-900 transition-all">1. Mapa Home</button>
-      <button onclick="showScreen('screen-details')" id="btn-details" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">2. Detalhes Unidade</button>
-      <button onclick="showScreen('screen-search')" id="btn-search" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">3. Busca & Filtros</button>
-      <button onclick="showScreen('screen-direitos')" id="btn-direitos" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">4. Direitos & IA</button>
+      <button onclick="showScreen('screen-map')" id="btn-map" class="screen-btn px-2 py-1 rounded-lg text-xs font-bold bg-[#EBF5FB] text-slate-900 transition-all">1. Mapa</button>
+      <button onclick="showScreen('screen-details')" id="btn-details" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">2. Unidade</button>
+      <button onclick="showScreen('screen-search')" id="btn-search" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">3. Busca</button>
+      <button onclick="showScreen('screen-direitos')" id="btn-direitos" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">4. Direitos</button>
       <button onclick="showScreen('screen-profissional')" id="btn-profissional" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">5. Profissional</button>
+      <button onclick="showScreen('screen-login')" id="btn-login" class="screen-btn px-2 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-all">6. Login / Acesso</button>
     </div>
   </header>
 
@@ -87,9 +88,14 @@
           <div onclick="showScreen('screen-search')" class="cursor-pointer flex items-center bg-white/95 backdrop-blur-md border border-[#D6C2AC] rounded-full px-3.5 h-12 shadow-md hover:border-slate-400 transition-all">
             <svg class="w-4 h-4 text-slate-700 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <span class="text-xs font-semibold text-slate-500 flex-1 select-none">Buscar UBS, PrEP, acolhimento, endereço...</span>
-            <button onclick="event.stopPropagation(); toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[11px] font-bold text-slate-700 shrink-0">
-              🛡️ Modo Seguro
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="event.stopPropagation(); showScreen('screen-login')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-xs" title="Acessar conta ou entrar anônimo">
+                👤
+              </button>
+              <button onclick="event.stopPropagation(); toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[11px] font-bold text-slate-700">
+                🛡️ Modo Seguro
+              </button>
+            </div>
           </div>
 
           <!-- Pílulas de Filtros Rápidos sobre o Mapa -->
@@ -117,42 +123,42 @@
           <!-- Lista de Unidades do Bottom Sheet -->
           <div class="overflow-y-auto p-4 space-y-3 custom-scroll flex-1">
             <!-- Card 1: UBS República (Porta Aberta 450m) -->
-            <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D6C2AC] space-y-2">
+            <div class="p-4 rounded-2xl bg-white border border-[#D6C2AC] shadow-xs space-y-2.5">
               <div class="flex justify-between items-start">
                 <div>
                   <h3 class="font-extrabold text-slate-900 text-sm">UBS República - Fernanda Sante Limeira</h3>
-                  <p class="text-[11px] text-slate-600">Praça do Patriarca, 100 • <b>450m de você</b> • <span class="text-emerald-700 font-bold">Aberto até 19h</span></p>
+                  <p class="text-[11.5px] text-slate-600 mt-0.5">Praça do Patriarca, 100 • <b>450m de você</b> • <span class="text-emerald-700 font-bold">Aberto até 19h</span></p>
                 </div>
-                <button class="text-slate-400">🔖</button>
+                <button class="text-slate-400 hover:text-amber-500">🔖</button>
               </div>
               <div class="flex flex-wrap gap-1.5 text-[10.5px]">
-                <span class="px-2 py-0.5 rounded bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Rede Sampa Trans</span>
-                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">Porta Aberta: Testes Rápidos & PrEP</span>
+                <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Rede Sampa Trans</span>
+                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">Porta Aberta: Testes Rápidos & PrEP</span>
               </div>
-              <div class="flex gap-2 pt-1 border-t border-slate-200/60">
-                <a href="tel:1132423756" class="flex-1 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-center text-slate-800 bg-white">Ligar: 3242-3756</a>
-                <button onclick="showScreen('screen-details')" class="flex-1 py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold text-center">Como Chegar</button>
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                <a href="tel:1132423756" class="h-11 rounded-xl border border-slate-300 text-xs font-bold flex items-center justify-center text-slate-800 bg-white hover:bg-slate-50 transition-all">Ligar: 3242-3756</a>
+                <button onclick="showScreen('screen-details')" class="h-11 rounded-xl bg-[#0B192C] text-white text-xs font-bold flex items-center justify-center hover:bg-slate-800 transition-all">Como Chegar</button>
               </div>
             </div>
 
             <!-- Card 2: CR POP TT Janaina Lima (Exige Acolhimento Prévio na UBS) -->
-            <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D6C2AC] space-y-2">
+            <div class="p-4 rounded-2xl bg-white border border-[#D6C2AC] shadow-xs space-y-2.5">
               <div class="flex justify-between items-start">
                 <div>
                   <h3 class="font-extrabold text-slate-900 text-sm">CR POP TT Janaina Lima - Bom Retiro</h3>
-                  <p class="text-[11px] text-slate-600">Rua Jaraguá, 866 • <b>1.8 km de você</b></p>
+                  <p class="text-[11.5px] text-slate-600 mt-0.5">Rua Jaraguá, 866 • <b>1.8 km de você</b></p>
                 </div>
-                <button class="text-slate-400">🔖</button>
+                <button class="text-slate-400 hover:text-amber-500">🔖</button>
               </div>
               <!-- Aviso de Precedência / Trauma-Informed -->
-              <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-snug">
+              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-amber-200 text-[11px] text-amber-900 leading-snug">
                 ⚠️ <b>Atenção de Fluxo:</b> Exige acolhimento prévio na UBS de referência do seu bairro para início da hormonização.
               </div>
               <div class="flex flex-wrap gap-1.5 text-[10.5px]">
-                <span class="px-2 py-0.5 rounded bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Ambulatório Especializado TT</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200">Hormonização</span>
+                <span class="px-2 py-0.5 rounded-md bg-[#EBF5FB] text-[#0284C7] font-bold border border-[#BAE6FD]">Ambulatório Especializado TT</span>
+                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200">Hormonização</span>
               </div>
-              <button onclick="showScreen('screen-details')" class="w-full py-1.5 rounded-xl bg-[#0B192C] text-white text-xs font-bold text-center">
+              <button onclick="showScreen('screen-details')" class="w-full h-11 rounded-xl bg-[#0B192C] text-white text-xs font-bold flex items-center justify-center hover:bg-slate-800 transition-all">
                 Ver Detalhes & Fluxo Clínico →
               </button>
             </div>
@@ -335,19 +341,25 @@
       <!-- TELA 3: BUSCA AVANÇADA E FILTROS CRUZADOS (Stitch Tela 3) -->
       <!-- ========================================== -->
       <section id="screen-search" class="screen-panel hidden min-h-full pb-20">
-        <!-- Header da Busca -->
-        <div class="bg-white px-4 pt-2 pb-3.5 border-b border-[#E2D9CF] sticky top-0 z-30">
-          <div class="flex items-center justify-between mb-2.5">
-            <button onclick="goBack()" class="p-1 text-slate-700 hover:text-black transition-all" title="Voltar para a tela anterior">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            </button>
-            <span class="text-sm font-extrabold uppercase tracking-wider text-slate-900">BUSCA & FILTROS</span>
+        <!-- Header da Busca (Padrão Unificado 56px) -->
+        <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
+          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          </button>
+          <div class="text-center">
+            <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">REDE SAMPA TRANS</span>
+            <span class="text-sm font-bold text-slate-900">Busca & Filtros Avançados</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="showScreen('screen-login')" class="text-slate-600 hover:text-slate-900 text-xs p-1" title="Acessar conta">👤</button>
             <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
               🛡️ Disfarçar
             </button>
           </div>
+        </div>
 
-          <!-- Input de Busca -->
+        <!-- Input de Busca Fixado Abaixo do Header -->
+        <div class="bg-white px-4 py-2.5 border-b border-slate-100 sticky top-14 z-20">
           <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl px-3 h-11">
             <svg class="w-4 h-4 text-slate-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input type="text" value="Hormonização Zona Leste" class="bg-transparent text-xs font-bold text-slate-900 flex-1 outline-none" />
@@ -755,6 +767,173 @@
       </section>
 
       <!-- ========================================== -->
+      <!-- TELA 6: ACESSO HUMANIZADO & LOGIN (SUS / Gov.br / B2B) -->
+      <!-- ========================================== -->
+      <section id="screen-login" class="screen-panel hidden min-h-full pb-20">
+        <!-- Header Unificado 56px -->
+        <div class="bg-white/95 backdrop-blur-md px-4 h-14 border-b border-[#E2D9CF] flex items-center justify-between sticky top-0 z-30">
+          <button onclick="goBack()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-800 transition-all" title="Voltar para a tela anterior">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          </button>
+          <div class="text-center">
+            <span class="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-500 block leading-none">REDE SAMPA TRANS</span>
+            <span class="text-sm font-bold text-slate-900">Acesso Seguro & Login</span>
+          </div>
+          <button onclick="toggleDisguise(true)" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-all">
+            🛡️ Disfarçar
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3.5 text-xs">
+          <!-- Card de Boas-Vindas & Acolhimento -->
+          <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-[#0B192C] text-white font-extrabold text-[10px]">SUS</span>
+              <span class="text-[10px] font-bold text-slate-500 tracking-wider">SÃO PAULO • SAÚDE INTEGRAL</span>
+            </div>
+            <h2 class="text-base font-extrabold text-slate-900">Bem-vinde à Rede Sampa Trans</h2>
+            <p class="text-slate-600 leading-relaxed">
+              Navegação segura para cuidados em saúde, hormonização, profilaxias (PrEP/PEP) e garantia irrestrita de direitos.
+            </p>
+          </div>
+
+          <!-- Segmented Control de Perfil (Cidadão vs Profissional) -->
+          <div class="grid grid-cols-2 bg-slate-200 p-1 rounded-xl gap-1">
+            <button onclick="switchLoginProfile('cidadao')" id="login-tab-cidadao" class="py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all">
+              👤 Cidadão / Usuário
+            </button>
+            <button onclick="switchLoginProfile('profissional')" id="login-tab-prof" class="py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all">
+              🩺 Profissional SUS
+            </button>
+          </div>
+
+          <!-- PAINEL CIDADÃO -->
+          <div id="login-panel-cidadao" class="space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
+              <!-- Aviso Trauma-Informed de Nome Social -->
+              <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2 text-emerald-900">
+                <span class="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">✓</span>
+                <div>
+                  <b class="block text-emerald-950 mb-0.5">Garantia Absoluta do Nome Social</b>
+                  <p class="text-[11px] text-emerald-800 leading-snug">Você é acolhide e identificado pelo seu Nome Social desde o primeiro acesso, sem necessidade de retificação civil prévia.</p>
+                </div>
+              </div>
+
+              <!-- Botão Oficial Gov.br -->
+              <button onclick="simulateLogin('cidadao', 'Alex Silva')" class="w-full h-12 rounded-xl bg-[#002B7F] hover:bg-[#002060] text-white font-bold flex items-center justify-center gap-2 shadow-sm transition-all">
+                <span class="text-base font-black tracking-tight">gov.br</span>
+                <span>Entrar com conta gov.br</span>
+              </button>
+
+              <div class="flex items-center my-1">
+                <div class="flex-1 h-px bg-slate-200"></div>
+                <span class="px-2 text-[10.5px] font-semibold text-slate-400">ou acesse com Cartão SUS</span>
+                <div class="flex-1 h-px bg-slate-200"></div>
+              </div>
+
+              <!-- Inputs -->
+              <div class="space-y-2">
+                <div>
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CPF OU CARTÃO NACIONAL DE SAÚDE (CNS)</label>
+                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
+                    <span class="mr-2 text-slate-400">💳</span>
+                    <input type="text" placeholder="000.000.000-00 ou 15 dígitos do CNS" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">SENHA DE ACESSO</label>
+                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
+                    <span class="mr-2 text-slate-400">🔒</span>
+                    <input type="password" placeholder="Sua senha cadastrada" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
+                    <button class="text-slate-400 text-xs">👁️</button>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="simulateLogin('cidadao', 'Usuário SUS')" class="w-full h-12 bg-[#0B192C] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center transition-all">
+                Entrar na Minha Conta
+              </button>
+
+              <!-- OPÇÃO CRÍTICA TRAUMA-INFORMED: ENTRAR ANÔNIMO -->
+              <div class="pt-3 border-t border-slate-100 text-center space-y-1.5">
+                <button onclick="simulateLogin('anonimo', null)" class="w-full h-11 bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#D6C2AC] rounded-xl font-bold text-slate-900 flex items-center justify-center gap-2 transition-all">
+                  <span>🛡️</span>
+                  <span>Continuar sem Login (Acesso Anônimo Seguro)</span>
+                </button>
+                <p class="text-[10.5px] text-slate-500 leading-tight">
+                  Zero cadastro. Não salvamos cookies nem histórico de busca para sua total segurança física e digital.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAINEL PROFISSIONAL SUS -->
+          <div id="login-panel-profissional" class="space-y-3 hidden">
+            <div class="bg-white rounded-2xl p-4 border border-[#D6C2AC] shadow-xs space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-[#0284C7] uppercase tracking-wide">PORTAL B2B • EDUCAÇÃO PERMANENTE</span>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> SMS-SP Homologado
+                </span>
+              </div>
+
+              <div>
+                <h3 class="font-extrabold text-slate-900 text-sm">Acesso para Equipes de Saúde</h3>
+                <p class="text-slate-500 text-[11px]">Habilitação técnica para médicos de família, enfermeiros e assistentes sociais da rede municipal.</p>
+              </div>
+
+              <!-- Seletor Conselho -->
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">CONSELHO PROFISSIONAL</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-[#0B192C] text-white">CRM (Médicos)</button>
+                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200">COREN</button>
+                  <button type="button" class="py-1.5 rounded-lg font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200">CRP</button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <div>
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">NÚMERO DO REGISTRO (UF: SP)</label>
+                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
+                    <span class="mr-2 text-slate-400">🎖️</span>
+                    <input type="text" value="182.904-SP" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">SENHA CORPORATIVA / SIGA SAÚDE</label>
+                  <div class="flex items-center bg-[#FAF8F5] border border-[#E9E1D7] rounded-xl px-3 h-11">
+                    <span class="mr-2 text-slate-400">🔒</span>
+                    <input type="password" value="••••••••••••" class="bg-transparent text-xs font-semibold text-slate-900 flex-1 outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="simulateLogin('profissional', 'Dr. Marcelo Ramos')" class="w-full h-12 bg-[#0B192C] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center transition-all">
+                Validar Credenciais e Entrar
+              </button>
+
+              <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#E9E1D7] space-y-1 text-[11px] text-slate-700">
+                <b class="text-slate-900 block font-bold">O que você acessa ao entrar:</b>
+                <p>• Calculadora hormonal clínica com metas laboratoriais</p>
+                <p>• Protocolos de conduta rápida e códigos SIGA (Z76.8)</p>
+                <p>• Certificação oficial pela Escola Municipal de Saúde</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rodapé de Conformidade & LGPD -->
+          <div class="text-center text-slate-500 text-[10.5px] space-y-1 pt-1">
+            <p class="flex items-center justify-center gap-1">
+              <span>🔒</span> Ambiente seguro sob protocolo SUS SP • Conformidade LGPD
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
       <!-- MODAL DE CAMUFLAGEM / DISFARÇAR -->
       <!-- ========================================== -->
       <div id="disguise-modal" class="hidden absolute inset-0 bg-slate-50 z-50 p-6 flex flex-col justify-between">
@@ -947,6 +1126,38 @@
         modal.classList.remove('hidden');
       } else {
         modal.classList.add('hidden');
+      }
+    }
+
+    function switchLoginProfile(profile) {
+      const tabCidadao = document.getElementById('login-tab-cidadao');
+      const tabProf = document.getElementById('login-tab-prof');
+      const panelCidadao = document.getElementById('login-panel-cidadao');
+      const panelProf = document.getElementById('login-panel-profissional');
+
+      if (profile === 'cidadao') {
+        tabCidadao.className = 'py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all';
+        tabProf.className = 'py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all';
+        panelCidadao.classList.remove('hidden');
+        panelProf.classList.add('hidden');
+      } else {
+        tabProf.className = 'py-2 rounded-lg font-bold text-xs bg-[#0B192C] text-white transition-all';
+        tabCidadao.className = 'py-2 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition-all';
+        panelProf.classList.remove('hidden');
+        panelCidadao.classList.add('hidden');
+      }
+    }
+
+    function simulateLogin(profile, name) {
+      if (profile === 'anonimo') {
+        alert('🛡️ Modo Anônimo Ativado:\nNenhum dado pessoal ou histórico é armazenado. Navegação protegida!');
+        showScreen('screen-map');
+      } else if (profile === 'profissional') {
+        alert(`🩺 Credencial Validada:\nBem-vindo(a), ${name || 'Profissional SUS'}!\nAcesso aos protocolos clínicos e calculadora hormonal liberado.`);
+        showScreen('screen-profissional');
+      } else {
+        alert(`✓ Acesso Concluído:\nOlá, ${name || 'Usuário'}! Seu Nome Social é garantido em todos os agendamentos e prontuários.`);
+        showScreen('screen-map');
       }
     }
 

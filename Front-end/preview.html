@@ -44,7 +44,22 @@
     .custom-scroll::-webkit-scrollbar { width: 0px; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    #map-canvas { width: 100%; height: 100%; z-index: 1; }
+    #map-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background-color: #E5E3DF;
+    }
+    /* Impede que o Tailwind quebre as imagens dos blocos do mapa Leaflet */
+    .leaflet-pane img,
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+      max-width: none !important;
+      max-height: none !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-neutral-900 text-neutral-100">
@@ -817,12 +832,29 @@
 
     function initLeafletMap() {
       if (mapInstance) {
-        setTimeout(() => mapInstance.invalidateSize(), 60);
+        setTimeout(() => mapInstance.invalidateSize(), 100);
         return;
       }
       try {
-        mapInstance = L.map('map-canvas', { zoomControl: false, attributionControl: false }).setView([-23.5440, -46.6420], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
+        mapInstance = L.map('map-canvas', {
+          zoomControl: false,
+          attributionControl: false
+        }).setView([-23.5440, -46.6420], 13);
+
+        // Camada Primária: CartoCDN Positron (Estilo limpo do commit do Sergio)
+        const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd',
+          maxZoom: 19
+        });
+
+        // Fallback automático: se a rede bloquear a CartoCDN, carrega o OpenStreetMap oficial na hora
+        cartoLayer.on('tileerror', function() {
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(mapInstance);
+        });
+
+        cartoLayer.addTo(mapInstance);
 
         UBS_UNITS.forEach(u => {
           const marker = L.circleMarker([u.lat, u.lon], {
@@ -843,7 +875,13 @@
         });
 
         renderMapCards(UBS_UNITS);
-      } catch (e) {}
+
+        // Força o Leaflet a recalcular as dimensões reais após o Tailwind aplicar as classes
+        setTimeout(() => mapInstance.invalidateSize(), 150);
+        setTimeout(() => mapInstance.invalidateSize(), 500);
+      } catch (e) {
+        console.error("Erro ao carregar mapa:", e);
+      }
     }
 
     function renderMapCards(units) {

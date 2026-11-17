@@ -2,21 +2,37 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// 1. Carrega GOOGLE_API_KEY do arquivo .env local sem precisar de pacotes externos
+// 1. Carrega GOOGLE_API_KEY da variável de ambiente ou do arquivo .env local
 function loadApiKey() {
-  const envPath = path.join(__dirname, '.env');
-  if (!fs.existsSync(envPath)) return process.env.GOOGLE_API_KEY || '';
-  const content = fs.readFileSync(envPath, 'utf8');
-  for (const line of content.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('GOOGLE_API_KEY=')) {
-      return trimmed.slice('GOOGLE_API_KEY='.length).trim().replace(/^['"]|['"]$/g, '');
+  if (process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY.trim()) {
+    return process.env.GOOGLE_API_KEY.trim();
+  }
+
+  const candidateEnvPaths = [
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '..', '.env')
+  ];
+
+  for (const envPath of candidateEnvPaths) {
+    if (!fs.existsSync(envPath)) continue;
+    const content = fs.readFileSync(envPath, 'utf8');
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      if (trimmed.startsWith('GOOGLE_API_KEY=')) {
+        const value = trimmed.slice('GOOGLE_API_KEY='.length).trim().replace(/^['"]|['"]$/g, '');
+        if (value) return value;
+      }
     }
   }
-  return process.env.GOOGLE_API_KEY || '';
+
+  return '';
 }
 
 const API_KEY = loadApiKey();
+const MAX_BODY_BYTES = 16 * 1024;
+const MAX_QUESTION_CHARS = 500;
+const REQUEST_TIMEOUT_MS = 15000;
 
 // Lista de modelos por ordem de prioridade (prioriza modelos com 500 RPD / 15 RPM)
 const CANDIDATE_MODELS = [
@@ -63,6 +79,7 @@ async function callGemini(pergunta) {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         body: JSON.stringify({
           systemInstruction: {
             parts: [{ text: SYSTEM_INSTRUCTION }]
@@ -117,11 +134,12 @@ if (process.argv.includes('--test')) {
       process.exitCode = 1;
     });
 } else {
-  const PORT = 8000;
+  const PORT = Number(process.env.PORT) || 8000;
+  const HOST = process.env.HOST || '0.0.0.0';
   const previewPath = path.join(__dirname, '..', 'Front-end', 'preview.html');
 
   const server = http.createServer(async (req, res) => {
-    // CORS headers para permitir uso tanto via file:// quanto http://localhost:8000
+    // CORS headers para permitir uso via file://, localhost ou domínio público
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -131,30 +149,63 @@ if (process.argv.includes('--test')) {
       return res.end();
     }
 
-    if (req.method === 'GET' && (req.url === '/' || req.url === '/preview.html')) {
+    const reqPath = new URL(req.url || '/', 'http://localhost').pathname;
+
+    if (req.method === 'GET' && (reqPath === '/' || reqPath === '/index.html' || reqPath === '/preview.html')) {
       if (fs.existsSync(previewPath)) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(fs.readFileSync(previewPath, 'utf8'));
       }
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ error: 'Front-end/preview.html não encontrado.' }));
     }
 
-    if (req.method === 'GET' && req.url === '/health') {
+    if (req.method === 'GET' && reqPath === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      return res.end(JSON.stringify({ status: 'online', hasApiKey: Boolean(API_KEY) }));
+      return res.end(JSON.stringify({
+        status: 'online',
+        hasApiKey: Boolean(API_KEY),
+        primaryModel: CANDIDATE_MODELS[0]
+      }));
     }
 
-    if (req.method === 'POST' && req.url === '/api/ai/direitos') {
+    if (req.method === 'POST' && reqPath === '/api/ai/direitos') {
       let body = '';
-      req.on('data', chunk => { body += chunk; });
+      let aborted = false;
+
+      req.on('data', chunk => {
+        if (aborted) return;
+        body += chunk;
+        if (Buffer.byteLength(body, 'utf8') > MAX_BODY_BYTES) {
+          aborted = true;
+          res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: 'Requisição muito grande.' }));
+          req.destroy();
+        }
+      });
+
       req.on('end', async () => {
+        if (aborted) return;
+        let payload;
         try {
-          const { pergunta } = JSON.parse(body || '{}');
-          if (!pergunta || !pergunta.trim()) {
-            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-            return res.end(JSON.stringify({ error: 'Digite uma pergunta.' }));
-          }
+          payload = JSON.parse(body || '{}');
+        } catch {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: 'JSON inválido.' }));
+        }
+
+        const pergunta = typeof payload.pergunta === 'string'
+          ? payload.pergunta.trim().slice(0, MAX_QUESTION_CHARS)
+          : '';
+
+        if (!pergunta) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: 'Digite uma pergunta.' }));
+        }
+
+        try {
           console.log(`[IA Request] "${pergunta}"`);
-          const result = await callGemini(pergunta.trim());
+          const result = await callGemini(pergunta);
           console.log(`[IA Success] Respondido via ${result.modelo_utilizado}`);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           return res.end(JSON.stringify(result));
@@ -167,15 +218,16 @@ if (process.argv.includes('--test')) {
       return;
     }
 
-    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ error: 'Rota não encontrada' }));
   });
 
-  server.listen(PORT, () => {
+  server.listen(PORT, HOST, () => {
     console.log('====================================================');
     console.log('🚀 SERVIDOR IA + PREVIEW REDE ACOLHE SP ATIVO!');
     console.log(`👉 Abra no navegador: http://localhost:${PORT}`);
     console.log(`🤖 Endpoint Gemini:   http://localhost:${PORT}/api/ai/direitos`);
+    console.log(`🔑 GOOGLE_API_KEY:    ${API_KEY ? 'configurada' : 'não configurada (usará fallback local no front)'}`);
     console.log('====================================================');
   });
 }

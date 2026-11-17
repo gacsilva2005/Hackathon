@@ -8,14 +8,14 @@ on:
 
 jobs:
   backend:
-    name: Back-end
+    name: Back-end (Spring Boot)
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: Back-end
 
-    # SQL Server efemero, so para os testes (contextLoads precisa de DataSource)
+    # SQL Server efêmero para os testes de contexto Spring Boot
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -48,13 +48,13 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Permissao do mvnw
+      - name: Permissão do mvnw
         run: chmod +x mvnw
 
       - name: Build e testes
         run: ./mvnw -B clean verify
 
-      - name: Publicar relatorios de teste
+      - name: Publicar relatórios de teste
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -69,24 +69,9 @@ jobs:
           path: Back-end/target/*.jar
           if-no-files-found: error
 
-  frontend:
-    name: Front-end ${{ matrix.app }}
+  ia-and-preview:
+    name: IA & Web Preview
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        app: [ web, mobile ]
-
-    # Só roda o job se a pasta do app e o package.json existirem
-    if: hashFiles(format('Front-end/{0}/package.json', matrix.app)) != ''
-
-    defaults:
-      run:
-        working-directory: Front-end/${{ matrix.app }}
-
-    env:
-      CI: true
 
     steps:
       - name: Checkout
@@ -96,32 +81,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: Front-end/${{ matrix.app }}/package-lock.json
 
-      - name: Instalar dependencias
-        run: npm ci
+      - name: Validar sintaxe do servidor IA (Node)
+        run: npm run check
 
-      - name: Lint
-        run: npm run lint --if-present
-
-      - name: Checagem de tipos (TypeScript)
+      - name: Validar integridade do preview.html
         run: |
-          if [ -f tsconfig.json ]; then npx tsc --noEmit; else echo "Sem tsconfig.json, pulando"; fi
+          test -f Front-end/preview.html
+          if grep -q "fetch('http://localhost:8000" Front-end/preview.html; then
+            echo "Erro: Front-end/preview.html contém URL hardcoded para localhost:8000"
+            exit 1
+          fi
 
-      - name: Testes
-        run: npm test --if-present -- --watchAll=false
-
-      - name: Build (web)
-        if: matrix.app == 'web'
-        run: npm run build --if-present
-
-      - name: Publicar build do web
-        if: matrix.app == 'web' && github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
         with:
-          name: web-build
-          path: |
-            Front-end/web/build
-            Front-end/web/dist
-          if-no-files-found: warn
+          python-version: '3.12'
+
+      - name: Validar sintaxe dos módulos Python de IA
+        run: python -m py_compile IA/agent.py IA/server.py IA/IA.PY

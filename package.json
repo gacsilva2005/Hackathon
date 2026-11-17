@@ -1,0 +1,15 @@
+{
+  "name": "rede-acolhe-sp",
+  "version": "1.0.0",
+  "description": "Rede Acolhe SP (Rede Sampa Trans) — Navegação de unidades SUS, fluxo de atendimento, modo camuflagem e assistente de direitos com Gemini.",
+  "main": "IA/ai-server.js",
+  "scripts": {
+    "start": "node IA/ai-server.js",
+    "test:ia": "node IA/ai-server.js --test",
+    "check": "node --check IA/ai-server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

@@ -151,7 +151,7 @@
 
       <div class="p-4 border-t border-neutral-200 bg-neutral-50">
         <div class="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">Acesso Corporativo / Equipes</div>
-        <button onclick="toggleSidebar(false); openProfessionalLogin()" class="w-full p-2.5 rounded-xl bg-white border border-neutral-200 hover:border-brand-navy shadow-2xs flex items-center justify-between text-left transition-all">
+        <button onclick="toggleSidebar(false); openProfessionalLogin()" class="w-full p-2.5 rounded-xl bg-white border border-neutral-200 hover:border-brand-navy shadow-sm flex items-center justify-between text-left transition-all">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-brand-navy/10 text-brand-navy flex items-center justify-center">
               <span class="material-symbols-outlined text-[18px]">stethoscope</span>
@@ -204,16 +204,16 @@
             </div>
 
             <!-- Dropdown de Sugestões (Híbrido: Unidades SUS + OpenStreetMap Nominatim) -->
-            <div id="nominatim-dropdown" class="hidden absolute top-13 left-0 right-0 mt-1.5 bg-white rounded-2xl border border-neutral-200 shadow-2xl overflow-hidden z-30 max-h-60 overflow-y-auto custom-scroll">
+            <div id="nominatim-dropdown" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl border border-neutral-200 shadow-2xl overflow-hidden z-30 max-h-60 overflow-y-auto custom-scroll">
             </div>
           </div>
 
           <!-- Filtros Rápidos Interativos no Mapa -->
           <div class="flex gap-1.5 overflow-x-auto hide-scrollbar text-xs">
-            <button onclick="filterMapUnits('todos')" id="chip-todos" class="map-chip px-3.5 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 shadow-xs transition-all">Todos (4)</button>
-            <button onclick="filterMapUnits('porta-aberta')" id="chip-porta-aberta" class="map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50 transition-all">Porta Aberta (UBS)</button>
-            <button onclick="filterMapUnits('hormonio')" id="chip-hormonio" class="map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50 transition-all">Hormonização</button>
-            <button onclick="showScreen('screen-search')" class="px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50 transition-all">CRS &amp; Regiões</button>
+            <button onclick="filterMapUnits('todos')" id="chip-todos" class="map-chip px-3.5 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 shadow-sm transition-all">Todos (4)</button>
+            <button onclick="filterMapUnits('porta-aberta')" id="chip-porta-aberta" class="map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-sm hover:bg-neutral-50 transition-all">Porta Aberta (UBS)</button>
+            <button onclick="filterMapUnits('hormonio')" id="chip-hormonio" class="map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-sm hover:bg-neutral-50 transition-all">Hormonização</button>
+            <button onclick="showScreen('screen-search')" class="px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-sm hover:bg-neutral-50 transition-all">CRS &amp; Regiões</button>
           </div>
         </div>
 
@@ -259,55 +259,37 @@
             </button>
           </div>
 
-          <div class="flex items-center bg-canvas border border-neutral-300 rounded-xl px-3 h-10">
+          <div class="flex items-center bg-canvas border border-neutral-300 focus-within:border-brand-navy focus-within:bg-white rounded-xl px-3 h-10 transition-all">
             <span class="material-symbols-outlined text-[18px] text-neutral-400 mr-2">search</span>
-            <input type="text" id="search-input" value="Hormonização Zona Leste" class="bg-transparent text-xs font-semibold text-neutral-900 flex-1 outline-none" />
+            <input
+              type="text"
+              id="search-input"
+              oninput="filterSearchScreen()"
+              placeholder="Buscar unidade, serviço, bairro ou CRS..."
+              class="bg-transparent text-xs font-semibold text-neutral-900 flex-1 outline-none placeholder:font-normal placeholder:text-neutral-500"
+            />
+            <button id="clear-search-screen-btn" onclick="resetSearchScreenFilters()" class="hidden text-neutral-400 hover:text-neutral-700 ml-1" title="Limpar busca">
+              <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
           </div>
         </header>
 
         <div class="p-4 space-y-3">
-          <div class="bg-white rounded-2xl p-3.5 border border-neutral-200 space-y-2.5 text-xs">
+          <div class="bg-white rounded-2xl p-3 border border-neutral-200 text-xs">
             <div class="flex gap-1.5 overflow-x-auto hide-scrollbar">
-              <span class="px-3 py-1 rounded-full bg-brand-navy text-white font-semibold shrink-0">CRS Leste</span>
-              <span class="px-3 py-1 rounded-full bg-brand-blue/25 text-brand-navy font-semibold shrink-0">Hormonização</span>
-              <span class="px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 shrink-0">Rede SUS</span>
+              <button onclick="setSearchFilterChip('todos')" id="search-chip-todos" class="search-chip px-3 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 transition-all">Todas (4)</button>
+              <button onclick="setSearchFilterChip('centro')" id="search-chip-centro" class="search-chip px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 font-medium shrink-0 hover:bg-neutral-200 transition-all">CRS Centro</button>
+              <button onclick="setSearchFilterChip('leste')" id="search-chip-leste" class="search-chip px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 font-medium shrink-0 hover:bg-neutral-200 transition-all">CRS Leste</button>
+              <button onclick="setSearchFilterChip('porta-aberta')" id="search-chip-porta-aberta" class="search-chip px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 font-medium shrink-0 hover:bg-neutral-200 transition-all">Porta Aberta</button>
+              <button onclick="setSearchFilterChip('hormonio')" id="search-chip-hormonio" class="search-chip px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 font-medium shrink-0 hover:bg-neutral-200 transition-all">Hormonização</button>
             </div>
           </div>
 
-          <div class="text-[11px] font-bold uppercase tracking-wider text-neutral-500 px-1">4 Unidades Homologadas</div>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-neutral-500 px-1" id="search-results-count">4 Unidades Homologadas</div>
 
-          <!-- Resultado 1 -->
-          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
-            <span class="text-[10px] font-bold text-brand-navy bg-brand-blue/25 px-2 py-0.5 rounded">CRS Leste • Cidade Tiradentes</span>
-            <h3 class="font-bold text-sm text-neutral-900">Casa Ser - Centro de Atenção à Saúde</h3>
-            <p class="text-xs text-neutral-500">Av. Dr. Guilherme de Abreu Sodré, 485 • 22 km</p>
-            <div class="pt-2 flex justify-end gap-2">
-              <button onclick="focusUnitOnMap('casa-ser')" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700">Ver no Mapa</button>
-              <button onclick="openUnitDetails('casa-ser')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Ver Fluxo</button>
-            </div>
-          </article>
-
-          <!-- Resultado 2 -->
-          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
-            <span class="text-[10px] font-bold text-status-green bg-emerald-50 px-2 py-0.5 rounded">Porta Aberta • Centro</span>
-            <h3 class="font-bold text-sm text-neutral-900">UBS República - Fernanda Sante Limeira</h3>
-            <p class="text-xs text-neutral-500">Praça do Patriarca, 100 • 450m</p>
-            <div class="pt-2 flex justify-end gap-2">
-              <button onclick="focusUnitOnMap('republica')" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700">Ver no Mapa</button>
-              <button onclick="openUnitDetails('republica')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Ver Fluxo</button>
-            </div>
-          </article>
-
-          <!-- Resultado 3 -->
-          <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
-            <span class="text-[10px] font-bold text-status-amber bg-amber-50 px-2 py-0.5 rounded">Especializado • Bom Retiro</span>
-            <h3 class="font-bold text-sm text-neutral-900">CR POP TT Janaina Lima</h3>
-            <p class="text-xs text-neutral-500">Rua Jaraguá, 866 • 1.8 km</p>
-            <div class="pt-2 flex justify-end gap-2">
-              <button onclick="focusUnitOnMap('janaina')" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700">Ver no Mapa</button>
-              <button onclick="openUnitDetails('janaina')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Ver Fluxo</button>
-            </div>
-          </article>
+          <div id="search-results-list" class="space-y-3">
+            <!-- Renderizado dinamicamente via renderSearchResults() -->
+          </div>
         </div>
       </section>
 
@@ -331,7 +313,7 @@
           <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/90 via-brand-navy/30 to-transparent"></div>
           <div class="absolute bottom-3 left-4 right-4 flex justify-between items-center text-[11px] text-white">
             <span class="font-medium" id="detail-crs">CRS Centro • Bom Retiro</span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-900/80 border border-emerald-400/30 text-emerald-200 font-semibold">Aberto até 19h</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-900/80 border border-emerald-400/30 text-emerald-200 font-semibold" id="detail-status">Aberto até 19h</span>
           </div>
         </div>
 
@@ -342,7 +324,7 @@
             
             <div class="space-y-1 text-xs text-neutral-600">
               <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-neutral-400">location_on</span> <span id="detail-address">Rua Jaraguá, 866 - Bom Retiro (1.8 km)</span></p>
-              <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-neutral-400">schedule</span> Segunda a Sexta, das 07h às 19h</p>
+              <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-neutral-400">schedule</span> <span id="detail-schedule">Segunda a Sexta, das 07h às 19h</span></p>
             </div>
 
             <div class="grid grid-cols-2 gap-2 pt-1">
@@ -350,11 +332,15 @@
                 <span class="material-symbols-outlined text-[17px]">call</span>
                 <span id="detail-phone">(11) 5196-2405</span>
               </a>
-              <button onclick="showScreen('screen-map')" class="h-10 rounded-xl bg-brand-navy text-white font-semibold text-xs flex items-center justify-center gap-1.5">
+              <button onclick="focusUnitOnMap(selectedUnitId)" class="h-10 rounded-xl bg-brand-navy text-white font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all">
                 <span class="material-symbols-outlined text-[17px]">directions</span>
                 <span>Ver no Mapa</span>
               </button>
             </div>
+            <a id="detail-maps-link" href="https://www.google.com/maps/search/?api=1&query=-23.5321,-46.6450" target="_blank" rel="noopener noreferrer" class="w-full h-9 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all">
+              <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+              <span>Abrir Rota no Google Maps</span>
+            </a>
           </div>
 
           <!-- Passo a Passo de Precedência (RF 04) -->
@@ -366,7 +352,7 @@
               </h3>
             </div>
 
-            <div class="space-y-3 text-xs">
+            <div class="space-y-3 text-xs" id="detail-flow-steps">
               <div class="flex gap-3">
                 <span class="w-5 h-5 rounded-full bg-status-green text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
                 <div>
@@ -400,12 +386,12 @@
               </div>
               <div class="flex items-center gap-1 bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg font-bold text-xs">
                 <span class="material-symbols-outlined text-[16px] text-amber-500 icon-fill">star</span>
-                <span>4.8</span>
+                <span id="detail-rating">4.8</span>
               </div>
             </div>
 
             <div class="p-3 rounded-xl bg-canvas text-xs text-neutral-700 space-y-1">
-              <p class="italic">"Fui chamada pelo meu nome social desde a recepção sem qualquer constrangimento. Equipe muito acolhedora."</p>
+              <p class="italic" id="detail-review-text">"Fui chamada pelo meu nome social desde a recepção sem qualquer constrangimento. Equipe muito acolhedora."</p>
               <span class="text-[10px] text-status-green font-semibold block">✓ Atendimento verificado via CNS</span>
             </div>
 
@@ -436,7 +422,7 @@
 
         <div class="p-4 space-y-3.5">
           <!-- Campo de Pergunta Interativa para a IA -->
-          <div class="bg-white rounded-2xl p-3.5 border border-neutral-200 shadow-2xs space-y-2.5">
+          <div class="bg-white rounded-2xl p-3.5 border border-neutral-200 shadow-sm space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold text-brand-navy uppercase tracking-wider flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-brand-navy icon-fill">neurology</span>
@@ -474,7 +460,7 @@
           </div>
 
           <!-- Card Dinâmico da IA (Estrutura ResumoDireitoSUS) -->
-          <div id="ai-response-card" class="bg-white rounded-2xl border border-brand-blue/60 p-4 shadow-2xs space-y-3 transition-all">
+          <div id="ai-response-card" class="bg-white rounded-2xl border border-brand-blue/60 p-4 shadow-sm space-y-3 transition-all">
             <div class="flex items-center justify-between gap-2">
               <span class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-navy bg-brand-blue/25 px-2.5 py-0.5 rounded-full shrink-0">
                 <span class="material-symbols-outlined text-[14px] icon-fill">auto_awesome</span>
@@ -550,7 +536,7 @@
           </div>
 
           <div class="grid grid-cols-2 bg-neutral-100 p-1 rounded-xl mb-6 text-xs">
-            <button onclick="switchLoginProfile('cidadao')" id="login-tab-cidadao" class="py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all">
+            <button onclick="switchLoginProfile('cidadao')" id="login-tab-cidadao" class="py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-sm transition-all">
               Cidadão (SUS)
             </button>
             <button onclick="switchLoginProfile('profissional')" id="login-tab-prof" class="py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all">
@@ -573,25 +559,25 @@
 
             <div class="space-y-3">
               <div>
-                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">CPF ou Cartão Nacional de Saúde (CNS)</label>
-                <input type="text" placeholder="000.000.000-00" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
+                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Nome Social, CPF ou Cartão SUS (CNS)</label>
+                <input type="text" id="citizen-login-id" placeholder="Ex: Alex Silva ou 000.000.000-00" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
               </div>
 
               <div>
                 <div class="flex justify-between items-center mb-1">
                   <label class="text-[11px] font-semibold text-neutral-700">Senha</label>
-                  <a href="#" class="text-[11px] text-brand-navy font-medium hover:underline">Esqueci a senha</a>
+                  <button type="button" onclick="showToast('Recuperação integrada ao Gov.br / Ouvidoria SUS 136.')" class="text-[11px] text-brand-navy font-medium hover:underline">Esqueci a senha</button>
                 </div>
                 <div class="relative flex items-center">
-                  <input type="password" placeholder="Digite sua senha" class="w-full h-11 pl-3.5 pr-10 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
-                  <button type="button" class="absolute right-3 text-neutral-400 hover:text-neutral-600">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                  <input type="password" id="citizen-password-input" placeholder="Digite sua senha" class="w-full h-11 pl-3.5 pr-10 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-neutral-900 focus:bg-white focus:border-brand-navy outline-none transition-all" />
+                  <button type="button" onclick="toggleCitizenPassword()" class="absolute right-3 text-neutral-400 hover:text-neutral-600" title="Mostrar ou ocultar senha">
+                    <span class="material-symbols-outlined text-[18px]" id="citizen-password-eye">visibility</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <button onclick="simulateLogin('cidadao', 'Alex Silva')" class="w-full h-11 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs transition-all">
+            <button onclick="simulateLogin('cidadao')" class="w-full h-11 rounded-xl bg-brand-navy hover:bg-slate-800 text-white font-semibold text-xs transition-all">
               Acessar Conta
             </button>
           </div>
@@ -599,15 +585,15 @@
           <!-- FORMULÁRIO 2: PROFISSIONAL (CRM / COREN) -->
           <div id="login-panel-profissional" class="space-y-4 hidden">
             <div class="grid grid-cols-3 gap-2">
-              <button type="button" class="py-2 rounded-lg border-2 border-brand-navy bg-brand-navy/5 text-brand-navy font-bold text-xs">CRM-SP</button>
-              <button type="button" class="py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50">COREN-SP</button>
-              <button type="button" class="py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50">CRP / CRESS</button>
+              <button type="button" onclick="selectCouncilType('CRM-SP')" id="council-btn-CRM-SP" class="council-btn py-2 rounded-lg border-2 border-brand-navy bg-brand-navy/5 text-brand-navy font-bold text-xs transition-all">CRM-SP</button>
+              <button type="button" onclick="selectCouncilType('COREN-SP')" id="council-btn-COREN-SP" class="council-btn py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50 transition-all">COREN-SP</button>
+              <button type="button" onclick="selectCouncilType('CRP / CRESS')" id="council-btn-CRP / CRESS" class="council-btn py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50 transition-all">CRP / CRESS</button>
             </div>
 
             <div class="space-y-3">
               <div>
-                <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Número do Registro Profissional</label>
-                <input type="text" value="182904" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-semibold text-neutral-900 focus:bg-white focus:border-brand-navy outline-none" />
+                <label class="block text-[11px] font-semibold text-neutral-700 mb-1" id="council-reg-label">Número do Registro (CRM-SP)</label>
+                <input type="text" id="prof-reg-input" value="182904" class="w-full h-11 px-3.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-semibold text-neutral-900 focus:bg-white focus:border-brand-navy outline-none" />
               </div>
 
               <div>
@@ -663,13 +649,13 @@
           </div>
 
           <div class="grid grid-cols-2 gap-2.5">
-            <button onclick="alert('Protocolo SMS-SP:\n• Valerato de Estradiol: 2 a 6mg/dia VO\n• Cipionato de Testosterona: 200mg IM a cada 14-21 dias')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
+            <button onclick="openClinicalDrawer('Protocolo SMS-SP: Hormonioterapia', '• Valerato de Estradiol: 2 a 6 mg/dia VO\n• Cipionato de Testosterona: 200 mg IM a cada 14–21 dias\n• Solicitar perfil lipídico, hepático e hematócrito no acompanhamento trimestral.')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
               <span class="material-symbols-outlined text-[22px] text-brand-navy">calculate</span>
               <strong class="block text-neutral-900">Dosagem Hormonal</strong>
               <span class="text-[11px] text-neutral-500 block">Tabelas e manejo seguro</span>
             </button>
 
-            <button onclick="alert('Código CID / SIGA:\n• Z76.8 - Processo Transexualizador\n• Priorizar Nome Social no cabeçalho da guia')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
+            <button onclick="openClinicalDrawer('Guia de Encaminhamento (SIGA Saúde)', '• Código CID-10: Z76.8 (Processo Transexualizador)\n• Priorizar Nome Social no cabeçalho da guia e prontuário\n• Encaminhar via UBS Porta Aberta para CR POP TT ou Casa Ser.')" class="bg-white p-3.5 rounded-2xl border border-neutral-200 text-left hover:border-brand-navy transition-all space-y-1.5">
               <span class="material-symbols-outlined text-[22px] text-status-green">menu_book</span>
               <strong class="block text-neutral-900">Guia de Encaminhamento</strong>
               <span class="text-[11px] text-neutral-500 block">Fluxo SIGA Saúde SP</span>
@@ -685,10 +671,20 @@
             <div class="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
               <div class="w-[65%] h-full bg-brand-navy"></div>
             </div>
-            <button onclick="alert('Reproduzindo Módulo 3...')" class="w-full h-10 rounded-xl bg-brand-navy text-white font-semibold flex items-center justify-center gap-1.5">
+            <button onclick="openClinicalDrawer('Módulo 3: Escuta Trauma-Informed (12 min)', '• Prática de recepção sem constrangimentos\n• Registro correto de Nome Social no Cartão SUS (CNS)\n• Fluxo de acolhimento prioritário para PEP em até 72h.')" class="w-full h-10 rounded-xl bg-brand-navy text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all">
               <span class="material-symbols-outlined text-[18px]">play_arrow</span>
               <span>Continuar Módulo 3 (12 min)</span>
             </button>
+          </div>
+
+          <div id="clinical-drawer-box" class="hidden bg-white rounded-2xl p-4 border border-brand-navy/30 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <strong class="text-xs font-bold text-brand-navy" id="clinical-drawer-title">Protocolo</strong>
+              <button onclick="document.getElementById('clinical-drawer-box').classList.add('hidden')" class="text-neutral-400 hover:text-neutral-700">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+            <pre id="clinical-drawer-body" class="text-[11px] text-neutral-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
           </div>
         </div>
       </section>
@@ -740,6 +736,9 @@
 
     </div>
 
+    <!-- TOAST FLUTUANTE IN-APP -->
+    <div id="app-toast" class="hidden pointer-events-none absolute bottom-20 left-4 right-4 z-50 bg-neutral-900/95 text-white text-xs font-medium px-3.5 py-2.5 rounded-xl shadow-lg text-center transition-all"></div>
+
     <!-- ========================================== -->
     <!-- BARRA DE NAVEGAÇÃO INFERIOR (EXCLUSIVA DO CIDADÃO) -->
     <!-- ========================================== -->
@@ -762,80 +761,141 @@
   </main>
 
   <script>
+    const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:8000' : '';
+
     let mapInstance = null;
     let searchMarker = null;
     let nominatimTimer = null;
+    let toastTimer = null;
     let currentScreen = 'screen-map';
+    let selectedUnitId = 'janaina';
+    let currentSearchFilter = 'todos';
     let isUserLoggedIn = false;
+    let selectedCouncil = 'CRM-SP';
     const screenHistory = [];
+    const unitMarkers = {};
+    const savedUnits = new Set();
 
-    // As 4 Unidades Oficiais da Rede Sampa Trans (do commit b5d722a)
+    // As 4 Unidades Oficiais da Rede Sampa Trans
     const UBS_UNITS = [
       {
         id: 'republica',
         name: 'UBS República - Fernanda Sante Limeira',
         shortBadge: 'Porta Aberta • Sem Agendamento',
         category: 'porta-aberta',
+        crsKey: 'centro',
         crs: 'CRS Centro • República',
         address: 'Praça do Patriarca, 100 - Sé',
         distance: '450m',
+        schedule: 'Segunda a Sexta, das 07h às 19h',
+        statusText: 'Aberto até 19h',
+        rating: '4.9',
+        review: 'Fui chamada pelo meu nome social desde a recepção e iniciei minha PrEP no mesmo dia, sem burocracia.',
         phone: '(11) 3242-3756',
         phoneRaw: '1132423756',
         lat: -23.5489,
         lon: -46.6388,
         color: '#1E5E43',
         borderClass: 'border-l-status-green',
-        badgeColorClass: 'text-status-green'
+        badgeColorClass: 'text-status-green',
+        chipBgClass: 'bg-emerald-50 text-status-green',
+        flowSteps: [
+          { title: 'Recepção com Nome Social (Porta Aberta)', desc: 'Atendimento sem agendamento prévio. Solicite inclusão imediata do Nome Social no Cartão SUS (CNS).' },
+          { title: 'Escuta Qualificada & PrEP / Testagem', desc: 'Acolhimento pela equipe de enfermagem e médicos para testagem rápida, PrEP/PEP e orientações.' },
+          { title: 'Encaminhamento via SIGA Saúde', desc: 'Caso deseje acompanhamento hormonal especializado, a própria UBS solicita a vaga no sistema municipal.' }
+        ]
       },
       {
         id: 'janaina',
         name: 'CR POP TT Janaina Lima - Bom Retiro',
         shortBadge: 'Ambulatório Especializado • Hormonização',
         category: 'hormonio',
+        crsKey: 'centro',
         crs: 'CRS Centro • Bom Retiro',
         address: 'Rua Jaraguá, 866 - Bom Retiro',
         distance: '1.8 km',
+        schedule: 'Segunda a Sexta, das 07h às 19h',
+        statusText: 'Aberto até 19h',
+        rating: '4.8',
+        review: 'Fui chamada pelo meu nome social desde a recepção sem qualquer constrangimento. Equipe muito acolhedora.',
         phone: '(11) 5196-2405',
         phoneRaw: '1151962405',
         lat: -23.5321,
         lon: -46.6450,
         color: '#0B2545',
         borderClass: 'border-l-status-amber',
-        badgeColorClass: 'text-status-amber'
+        badgeColorClass: 'text-status-amber',
+        chipBgClass: 'bg-amber-50 text-status-amber',
+        flowSteps: [
+          { title: 'Acolhimento na UBS do seu Bairro (Porta Aberta)', desc: 'Compareça à UBS mais próxima com seu Nome Social para primeira escuta e inserção no sistema SIGA.' },
+          { title: 'Agendamento Regulado', desc: 'A UBS solicita sua vaga neste Centro de Referência e avisa a data por telefone ou SMS.' },
+          { title: 'Consulta Multiprofissional e Hormonioterapia', desc: 'Início do acompanhamento com endocrinologista, psicologia e retirada gratuita de medicação.' }
+        ]
       },
       {
         id: 'santa-cecilia',
         name: 'AMAE Dr. Humberto Pascale - Santa Cecília',
         shortBadge: 'Porta Aberta & Especialidades',
         category: 'porta-aberta',
+        crsKey: 'centro',
         crs: 'CRS Centro • Santa Cecília',
         address: 'Rua Vitorino Carmilo, 599 - Santa Cecília',
         distance: '2.1 km',
+        schedule: 'Segunda a Sexta, das 07h às 18h',
+        statusText: 'Aberto até 18h',
+        rating: '4.7',
+        review: 'Equipe treinada no protocolo Sampa Trans, ambiente respeitoso e encaminhamento ágil para exames.',
         phone: '(11) 3826-9566',
         phoneRaw: '1138269566',
         lat: -23.5370,
         lon: -46.6520,
         color: '#1E5E43',
         borderClass: 'border-l-status-green',
-        badgeColorClass: 'text-status-green'
+        badgeColorClass: 'text-status-green',
+        chipBgClass: 'bg-emerald-50 text-status-green',
+        flowSteps: [
+          { title: 'Acolhimento e Triagem Multiprofissional', desc: 'Apresente documento ou apenas informe seu Nome Social para abertura de prontuário e escuta inicial.' },
+          { title: 'Exames Laboratoriais e Clínica Geral', desc: 'Coleta e avaliação clínica integrada para prevenção de ISTs e saúde integral.' },
+          { title: 'Integração com a Rede Sampa Trans', desc: 'Seguimento contínuo na unidade ou articulação com os ambulatórios especializados da CRS Centro.' }
+        ]
       },
       {
         id: 'casa-ser',
         name: 'Casa Ser - Centro de Atenção Cidade Tiradentes',
         shortBadge: 'Referência Zona Leste • Hormonização',
         category: 'hormonio',
+        crsKey: 'leste',
         crs: 'CRS Leste • Cidade Tiradentes',
         address: 'Av. Dr. Guilherme de Abreu Sodré, 485',
         distance: '22 km',
+        schedule: 'Segunda a Sexta, das 07h às 17h',
+        statusText: 'Aberto até 17h',
+        rating: '4.9',
+        review: 'Referência fundamental na Zona Leste. Acompanhamento humanizado desde o primeiro atendimento.',
         phone: '(11) 2555-7090',
         phoneRaw: '1125557090',
         lat: -23.5850,
         lon: -46.4020,
         color: '#0B2545',
         borderClass: 'border-l-brand-navy',
-        badgeColorClass: 'text-brand-navy'
+        badgeColorClass: 'text-brand-navy',
+        chipBgClass: 'bg-brand-blue/25 text-brand-navy',
+        flowSteps: [
+          { title: 'Acesso Regional na Zona Leste', desc: 'Unidade de referência da CRS Leste para acompanhamento em saúde sexual, reprodutiva e trans.' },
+          { title: 'Avaliação Endocrinológica e Psicossocial', desc: 'Consulta integrada com equipe multiprofissional e solicitação de exames de rotina.' },
+          { title: 'Dispensação Gratuita na Farmácia SUS', desc: 'Retirada e aplicação assistida de hormonioterapia pelo SUS municipal.' }
+        ]
       }
     ];
+
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 2800);
+    }
 
     function initLeafletMap() {
       if (mapInstance) {
@@ -864,12 +924,16 @@
           }).addTo(mapInstance);
 
           marker.bindPopup(`
-            <div style="font-family:Inter,sans-serif;min-width:170px">
+            <div style="font-family:Inter,sans-serif;min-width:185px">
               <strong style="font-size:12px;color:#0B2545;display:block">${u.name}</strong>
               <span style="font-size:11px;color:#1E5E43;display:block;margin-top:2px">${u.shortBadge}</span>
               <span style="font-size:10px;color:#666;display:block;margin-top:2px">${u.address}</span>
+              <button onclick="openUnitDetails('${u.id}')" style="margin-top:6px;width:100%;padding:5px 8px;border:none;border-radius:8px;background:#0B2545;color:#fff;font-size:11px;font-weight:600;cursor:pointer">
+                Ver Fluxo →
+              </button>
             </div>
           `);
+          unitMarkers[u.id] = marker;
         });
 
         renderMapCards(UBS_UNITS);
@@ -887,47 +951,144 @@
       const countBadge = document.getElementById('sheet-count-badge');
       countBadge.textContent = `${units.length} ${units.length === 1 ? 'unidade' : 'unidades'}`;
 
-      container.innerHTML = units.map(u => `
-        <article class="p-3 rounded-2xl bg-white border border-neutral-200 border-l-4 ${u.borderClass} shadow-2xs space-y-2">
-          <div class="flex justify-between items-start gap-2">
-            <div onclick="focusUnitOnMap('${u.id}')" class="cursor-pointer flex-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider ${u.badgeColorClass} block">${u.shortBadge}</span>
-              <h3 class="font-bold text-neutral-900 text-xs sm:text-sm mt-0.5">${u.name}</h3>
-              <p class="text-[11px] text-neutral-500 mt-0.5">${u.address} • <strong class="text-neutral-800">${u.distance}</strong></p>
+      container.innerHTML = units.map(u => {
+        const isSaved = savedUnits.has(u.id);
+        return `
+          <article class="p-3 rounded-2xl bg-white border border-neutral-200 border-l-4 ${u.borderClass} shadow-sm space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <div onclick="focusUnitOnMap('${u.id}')" class="cursor-pointer flex-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider ${u.badgeColorClass} block">${u.shortBadge}</span>
+                <h3 class="font-bold text-neutral-900 text-xs sm:text-sm mt-0.5">${u.name}</h3>
+                <p class="text-[11px] text-neutral-500 mt-0.5">${u.address} • <strong class="text-neutral-800">${u.distance}</strong></p>
+              </div>
+              <button onclick="handleBookmarkUnit('${u.id}')" class="w-7 h-7 rounded-full hover:bg-neutral-100 flex items-center justify-center ${isSaved ? 'text-brand-navy' : 'text-neutral-400'}" title="${isSaved ? 'Remover dos favoritos' : 'Salvar unidade'}">
+                <span class="material-symbols-outlined text-[18px] ${isSaved ? 'icon-fill' : ''}">bookmark</span>
+              </button>
             </div>
-            <button onclick="requireLoginForAction('salvar esta unidade nos favoritos')" class="w-7 h-7 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400">
-              <span class="material-symbols-outlined text-[18px]">bookmark</span>
-            </button>
-          </div>
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="focusUnitOnMap('${u.id}')" class="h-8 rounded-xl border border-neutral-200 text-[11px] font-semibold flex items-center justify-center gap-1 text-neutral-700 hover:bg-neutral-50">
-              <span class="material-symbols-outlined text-[15px]">my_location</span>
-              <span>Focar no Mapa</span>
-            </button>
-            <button onclick="openUnitDetails('${u.id}')" class="h-8 rounded-xl bg-brand-navy text-white text-[11px] font-semibold flex items-center justify-center gap-1 hover:bg-slate-800">
-              <span>Ver Fluxo</span>
-              <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
-            </button>
-          </div>
-        </article>
-      `).join('');
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="focusUnitOnMap('${u.id}')" class="h-8 rounded-xl border border-neutral-200 text-[11px] font-semibold flex items-center justify-center gap-1 text-neutral-700 hover:bg-neutral-50">
+                <span class="material-symbols-outlined text-[15px]">my_location</span>
+                <span>Focar no Mapa</span>
+              </button>
+              <button onclick="openUnitDetails('${u.id}')" class="h-8 rounded-xl bg-brand-navy text-white text-[11px] font-semibold flex items-center justify-center gap-1 hover:bg-slate-800">
+                <span>Ver Fluxo</span>
+                <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function handleBookmarkUnit(unitId) {
+      if (!isUserLoggedIn) {
+        requireLoginForAction('salvar esta unidade nos favoritos');
+        return;
+      }
+      if (savedUnits.has(unitId)) {
+        savedUnits.delete(unitId);
+        showToast('Unidade removida dos favoritos.');
+      } else {
+        savedUnits.add(unitId);
+        showToast('Salvo com sucesso na sua conta!');
+      }
+      const activeChip = document.querySelector('.map-chip.bg-brand-navy');
+      const currentFilter = activeChip ? activeChip.id.replace('chip-', '') : 'todos';
+      filterMapUnits(currentFilter);
     }
 
     function filterMapUnits(filterType) {
       document.querySelectorAll('.map-chip').forEach(c => {
-        c.className = 'map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-xs hover:bg-neutral-50 transition-all';
+        c.className = 'map-chip px-3.5 py-1.5 rounded-full bg-white border border-neutral-200 text-neutral-700 font-medium shrink-0 shadow-sm hover:bg-neutral-50 transition-all';
       });
       const activeChip = document.getElementById('chip-' + filterType);
       if (activeChip) {
-        activeChip.className = 'map-chip px-3.5 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 shadow-xs transition-all';
+        activeChip.className = 'map-chip px-3.5 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 shadow-sm transition-all';
       }
 
       if (filterType === 'todos') {
         renderMapCards(UBS_UNITS);
       } else {
-        const filtered = UBS_UNITS.filter(u => u.category === filterType);
-        renderMapCards(filtered);
+        renderMapCards(UBS_UNITS.filter(u => u.category === filterType));
       }
+    }
+
+    // ==========================================
+    // TELA 2: BUSCA E FILTROS DINÂMICOS (4 UNIDADES)
+    // ==========================================
+    function setSearchFilterChip(chipKey) {
+      currentSearchFilter = chipKey;
+      document.querySelectorAll('.search-chip').forEach(btn => {
+        btn.className = 'search-chip px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 font-medium shrink-0 hover:bg-neutral-200 transition-all';
+      });
+      const active = document.getElementById('search-chip-' + chipKey);
+      if (active) {
+        active.className = 'search-chip px-3 py-1.5 rounded-full bg-brand-navy text-white font-semibold shrink-0 transition-all';
+      }
+      filterSearchScreen();
+    }
+
+    function resetSearchScreenFilters() {
+      const input = document.getElementById('search-input');
+      if (input) input.value = '';
+      setSearchFilterChip('todos');
+    }
+
+    function filterSearchScreen() {
+      const input = document.getElementById('search-input');
+      const clearBtn = document.getElementById('clear-search-screen-btn');
+      const q = (input ? input.value : '').trim().toLowerCase();
+      if (clearBtn) clearBtn.classList.toggle('hidden', q.length === 0 && currentSearchFilter === 'todos');
+
+      const filtered = UBS_UNITS.filter(u => {
+        const matchesChip =
+          currentSearchFilter === 'todos' ||
+          u.crsKey === currentSearchFilter ||
+          u.category === currentSearchFilter;
+
+        if (!matchesChip) return false;
+        if (!q) return true;
+
+        return (
+          u.name.toLowerCase().includes(q) ||
+          u.shortBadge.toLowerCase().includes(q) ||
+          u.crs.toLowerCase().includes(q) ||
+          u.address.toLowerCase().includes(q)
+        );
+      });
+
+      renderSearchResults(filtered);
+    }
+
+    function renderSearchResults(units) {
+      const listEl = document.getElementById('search-results-list');
+      const countEl = document.getElementById('search-results-count');
+      if (!listEl || !countEl) return;
+
+      countEl.textContent = `${units.length} ${units.length === 1 ? 'Unidade Homologada' : 'Unidades Homologadas'}`;
+
+      if (units.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white rounded-2xl p-5 border border-neutral-200 text-center space-y-2.5">
+            <span class="material-symbols-outlined text-[28px] text-neutral-400">search_off</span>
+            <p class="text-xs font-semibold text-neutral-700">Nenhuma unidade encontrada para este filtro.</p>
+            <button onclick="resetSearchScreenFilters()" class="px-3.5 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold">Limpar filtros</button>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = units.map(u => `
+        <article class="bg-white rounded-2xl p-4 border border-neutral-200 space-y-2">
+          <span class="inline-block text-[10px] font-bold ${u.chipBgClass} px-2 py-0.5 rounded">${u.crs}</span>
+          <h3 class="font-bold text-sm text-neutral-900">${u.name}</h3>
+          <p class="text-xs text-neutral-500">${u.address} • ${u.distance}</p>
+          <div class="pt-2 flex justify-end gap-2">
+            <button onclick="focusUnitOnMap('${u.id}')" class="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">Ver no Mapa</button>
+            <button onclick="openUnitDetails('${u.id}')" class="px-3 py-1.5 rounded-lg bg-brand-navy text-white text-xs font-semibold hover:bg-slate-800">Ver Fluxo</button>
+          </div>
+        </article>
+      `).join('');
     }
 
     function focusUnitOnMap(unitId) {
@@ -936,7 +1097,10 @@
       showScreen('screen-map');
       setTimeout(() => {
         if (mapInstance) {
-          mapInstance.flyTo([unit.lat, unit.lon], 16, { duration: 1.1 });
+          mapInstance.flyTo([unit.lat, unit.lon], 16, { duration: 1.0 });
+          if (unitMarkers[unit.id]) {
+            setTimeout(() => unitMarkers[unit.id].openPopup(), 450);
+          }
         }
       }, 100);
     }
@@ -949,12 +1113,37 @@
 
     function openUnitDetails(unitId) {
       const unit = UBS_UNITS.find(u => u.id === unitId) || UBS_UNITS[1];
+      selectedUnitId = unit.id;
       document.getElementById('detail-name').textContent = unit.name;
       document.getElementById('detail-badge').textContent = unit.shortBadge;
       document.getElementById('detail-crs').textContent = unit.crs;
+      document.getElementById('detail-status').textContent = unit.statusText;
       document.getElementById('detail-address').textContent = `${unit.address} (${unit.distance})`;
+      document.getElementById('detail-schedule').textContent = unit.schedule;
       document.getElementById('detail-phone').textContent = unit.phone;
       document.getElementById('detail-phone-link').href = `tel:${unit.phoneRaw}`;
+      document.getElementById('detail-maps-link').href = `https://www.google.com/maps/search/?api=1&query=${unit.lat},${unit.lon}`;
+      document.getElementById('detail-rating').textContent = unit.rating;
+      document.getElementById('detail-review-text').textContent = `"${unit.review}"`;
+
+      const stepsContainer = document.getElementById('detail-flow-steps');
+      stepsContainer.innerHTML = unit.flowSteps.map((step, idx) => {
+        const dotClass = idx === 0
+          ? 'bg-status-green text-white'
+          : idx === 1
+            ? 'bg-brand-navy text-white'
+            : 'bg-neutral-200 text-neutral-600';
+        return `
+          <div class="flex gap-3">
+            <span class="w-5 h-5 rounded-full ${dotClass} font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+            <div>
+              <strong class="text-neutral-900 block">${step.title}</strong>
+              <p class="text-neutral-500 mt-0.5">${step.desc}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
       showScreen('screen-details');
     }
 
@@ -992,10 +1181,10 @@
           if (res.ok) {
             const remotePlaces = await res.json();
             renderAutocompleteDropdown(localMatches, remotePlaces, false);
+            return;
           }
-        } catch (e) {
-          renderAutocompleteDropdown(localMatches, [], false);
-        }
+        } catch (e) {}
+        renderAutocompleteDropdown(localMatches, [], false);
       }, 350);
     }
 
@@ -1007,7 +1196,7 @@
         html += `<div class="px-3 py-1.5 bg-neutral-50 text-[10px] font-bold uppercase tracking-wider text-brand-navy border-b border-neutral-100">Unidades Rede Sampa Trans</div>`;
         localUnits.forEach(u => {
           html += `
-            <button onclick="selectAutocompleteLocation(${u.lat}, ${u.lon}, '${u.name.replace(/'/g, "\\'")}', true)" class="w-full px-3.5 py-2.5 text-left hover:bg-brand-blue/15 flex items-start gap-2.5 border-b border-neutral-100 transition-all">
+            <button onclick="selectAutocompleteLocation(${u.lat}, ${u.lon}, '${u.name.replace(/'/g, "\\'")}', true, '${u.id}')" class="w-full px-3.5 py-2.5 text-left hover:bg-brand-blue/15 flex items-start gap-2.5 border-b border-neutral-100 transition-all">
               <span class="material-symbols-outlined text-[18px] text-status-green mt-0.5">local_hospital</span>
               <div class="min-w-0 flex-1">
                 <strong class="text-xs font-bold text-neutral-900 block truncate">${u.name}</strong>
@@ -1023,7 +1212,7 @@
         remotePlaces.forEach(p => {
           const shortLabel = p.display_name.split(',').slice(0, 3).join(',');
           html += `
-            <button onclick="selectAutocompleteLocation(${p.lat}, ${p.lon}, '${shortLabel.replace(/'/g, "\\'")}', false)" class="w-full px-3.5 py-2.5 text-left hover:bg-neutral-100 flex items-start gap-2.5 border-b border-neutral-100 transition-all">
+            <button onclick="selectAutocompleteLocation(${p.lat}, ${p.lon}, '${shortLabel.replace(/'/g, "\\'")}', false, '')" class="w-full px-3.5 py-2.5 text-left hover:bg-neutral-100 flex items-start gap-2.5 border-b border-neutral-100 transition-all">
               <span class="material-symbols-outlined text-[18px] text-brand-navy mt-0.5">location_on</span>
               <div class="min-w-0 flex-1">
                 <strong class="text-xs font-semibold text-neutral-800 block truncate">${shortLabel}</strong>
@@ -1042,14 +1231,16 @@
       dropdown.classList.remove('hidden');
     }
 
-    function selectAutocompleteLocation(lat, lon, label, isUbs) {
+    function selectAutocompleteLocation(lat, lon, label, isUbs, unitId) {
       const input = document.getElementById('map-autocomplete-input');
       input.value = label;
       closeNominatimDropdown();
 
       if (mapInstance) {
-        mapInstance.flyTo([lat, lon], 16, { duration: 1.2 });
-        if (!isUbs) {
+        mapInstance.flyTo([lat, lon], 16, { duration: 1.1 });
+        if (isUbs && unitId && unitMarkers[unitId]) {
+          setTimeout(() => unitMarkers[unitId].openPopup(), 450);
+        } else if (!isUbs) {
           if (searchMarker) mapInstance.removeLayer(searchMarker);
           searchMarker = L.circleMarker([lat, lon], {
             radius: 8,
@@ -1078,7 +1269,7 @@
     }
 
     // ==========================================
-    // CALCULADORA DE CAMUFLAGEM FUNCIONAL (COMMIT b5d722a)
+    // CALCULADORA DE CAMUFLAGEM FUNCIONAL
     // ==========================================
     let calcExpr = '';
     function calcInput(token) {
@@ -1098,7 +1289,7 @@
       }
       if (token === '=') {
         try {
-          if (!calcExpr) return;
+          if (!calcExpr || !/^[0-9+\-*/.() ]+$/.test(calcExpr)) return;
           history.textContent = calcExpr + ' =';
           const result = Function('"use strict";return (' + calcExpr + ')')();
           calcExpr = String(Number(result.toFixed(4)));
@@ -1114,7 +1305,7 @@
     }
 
     // ==========================================
-    // NAVEGAÇÃO ENTRE AS 6 TELAS + SIDEBAR
+    // NAVEGAÇÃO ENTRE AS 6 TELAS + SIDEBAR + LOGIN
     // ==========================================
     function toggleSidebar(open) {
       const drawer = document.getElementById('sidebar-drawer');
@@ -1133,12 +1324,18 @@
       switchLoginProfile('profissional');
     }
 
+    function openClinicalDrawer(title, body) {
+      document.getElementById('clinical-drawer-title').textContent = title;
+      document.getElementById('clinical-drawer-body').textContent = body;
+      document.getElementById('clinical-drawer-box').classList.remove('hidden');
+    }
+
     function requireLoginForAction(actionName) {
       if (!isUserLoggedIn) {
         showScreen('screen-login');
         document.getElementById('login-subtitle').textContent = `Entre com seu Cartão SUS ou Gov.br para ${actionName}.`;
       } else {
-        alert('Salvo com sucesso na sua conta!');
+        showToast('Ação registrada na sua conta protegida!');
       }
     }
 
@@ -1177,6 +1374,7 @@
       }
 
       if (screenId === 'screen-map') setTimeout(initLeafletMap, 50);
+      if (screenId === 'screen-search') filterSearchScreen();
     }
 
     function goBack() {
@@ -1191,6 +1389,28 @@
       document.getElementById('disguise-modal').classList.toggle('hidden', !show);
     }
 
+    function toggleCitizenPassword() {
+      const input = document.getElementById('citizen-password-input');
+      const eye = document.getElementById('citizen-password-eye');
+      if (!input || !eye) return;
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      eye.textContent = isHidden ? 'visibility_off' : 'visibility';
+    }
+
+    function selectCouncilType(council) {
+      selectedCouncil = council;
+      document.querySelectorAll('.council-btn').forEach(btn => {
+        btn.className = 'council-btn py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium text-xs hover:bg-neutral-50 transition-all';
+      });
+      const activeBtn = document.getElementById('council-btn-' + council);
+      if (activeBtn) {
+        activeBtn.className = 'council-btn py-2 rounded-lg border-2 border-brand-navy bg-brand-navy/5 text-brand-navy font-bold text-xs transition-all';
+      }
+      const label = document.getElementById('council-reg-label');
+      if (label) label.textContent = `Número do Registro (${council})`;
+    }
+
     function switchLoginProfile(profile) {
       const tabCidadao = document.getElementById('login-tab-cidadao');
       const tabProf = document.getElementById('login-tab-prof');
@@ -1198,33 +1418,44 @@
       const panelProf = document.getElementById('login-panel-profissional');
 
       if (profile === 'cidadao') {
-        tabCidadao.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all';
+        tabCidadao.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-sm transition-all';
         tabProf.className = 'py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all';
         panelCidadao.classList.remove('hidden');
         panelProf.classList.add('hidden');
       } else {
-        tabProf.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-2xs transition-all';
+        tabProf.className = 'py-2 rounded-lg font-semibold bg-white text-neutral-900 shadow-sm transition-all';
         tabCidadao.className = 'py-2 rounded-lg font-medium text-neutral-500 hover:text-neutral-900 transition-all';
         panelProf.classList.remove('hidden');
         panelCidadao.classList.add('hidden');
       }
     }
 
-    function simulateLogin(profile, name) {
+    function simulateLogin(profile, presetName) {
       if (profile === 'profissional') {
         showScreen('screen-profissional');
       } else {
+        const typedId = (document.getElementById('citizen-login-id')?.value || '').trim();
+        const displayName = presetName || (typedId && !/^\d/.test(typedId) ? typedId : 'Alex Silva');
         isUserLoggedIn = true;
-        document.getElementById('sidebar-user-name').textContent = name + ' (Nome Social)';
+        document.getElementById('sidebar-user-name').textContent = displayName + ' (Nome Social)';
         document.getElementById('sidebar-user-status').textContent = 'Cartão SUS Vinculado • Protegido';
-        document.getElementById('nav-conta-label').textContent = 'Alex Silva';
+        document.getElementById('nav-conta-label').textContent = displayName;
         showScreen('screen-map');
+        showToast(`Boas-vindas, ${displayName}!`);
       }
     }
 
     // ==========================================
-    // MOTOR DE IA (GEMINI 2.5 FLASH LIVE + FALLBACK MULTI-TÓPICO)
+    // MOTOR DE IA (GEMINI 3.5 FLASH-LITE LIVE + FALLBACK MULTI-TÓPICO)
     // ==========================================
+    function formatModelLabel(modelId) {
+      if (!modelId) return 'Gemini 3.5 Flash Lite';
+      return modelId
+        .split('-')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    }
+
     function askQuickQuestion(questionText) {
       const input = document.getElementById('ai-query-input');
       input.value = questionText;
@@ -1234,7 +1465,7 @@
     function configureBrowserApiKey() {
       const current = localStorage.getItem('GEMINI_API_KEY') || '';
       const key = prompt(
-        'Opcional: Cole sua GOOGLE_API_KEY do Google AI Studio para chamadas diretas pelo navegador (ou deixe em branco para usar o servidor local IA/ai-server.js):',
+        'Opcional: Cole sua GOOGLE_API_KEY do Google AI Studio para chamadas diretas pelo navegador (ou deixe em branco para usar o servidor IA/ai-server.js):',
         current
       );
       if (key !== null) {
@@ -1251,10 +1482,13 @@
     async function checkAIServerStatus() {
       const statusText = document.getElementById('ai-status-text');
       try {
-        const res = await fetch('http://localhost:8000/health', { method: 'GET' });
+        const res = await fetch(`${API_BASE}/health`, { method: 'GET' });
         if (res.ok) {
-          statusText.textContent = 'Gemini 2.5 Flash • Online';
-          return true;
+          const data = await res.json();
+          if (data.hasApiKey) {
+            statusText.textContent = `${formatModelLabel(data.primaryModel)} • Online`;
+            return true;
+          }
         }
       } catch (e) {}
       if (localStorage.getItem('GEMINI_API_KEY')) {
@@ -1374,15 +1608,16 @@
       card.style.opacity = '0.6';
 
       try {
-        const res = await fetch('http://localhost:8000/api/ai/direitos', {
+        const res = await fetch(`${API_BASE}/api/ai/direitos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pergunta: query })
         });
         if (res.ok) {
           const data = await res.json();
-          renderAIResult(data, `Gemini Live (${data.modelo_utilizado || 'Gemini 3.5 Flash Lite'})`);
-          document.getElementById('ai-status-text').textContent = (data.modelo_utilizado || 'Gemini 3.5 Flash Lite') + ' • Online';
+          const modelUsed = data.modelo_utilizado || 'gemini-3.5-flash-lite';
+          renderAIResult(data, `Gemini Live (${modelUsed})`);
+          document.getElementById('ai-status-text').textContent = `${formatModelLabel(modelUsed)} • Online`;
           btn.innerHTML = originalText;
           btn.disabled = false;
           card.style.opacity = '1';
@@ -1434,30 +1669,51 @@
       if (badgeLabel) {
         document.getElementById('ai-card-badge').textContent = badgeLabel;
       }
-      document.getElementById('ai-card-title').textContent = data.titulo;
-      document.getElementById('ai-card-law').textContent = data.base_legal;
-      document.getElementById('ai-card-summary').textContent = data.resumo_executivo;
-      document.getElementById('ai-card-action').innerHTML = '<strong>Próximo passo:</strong> ' + data.acao_recomendada;
+      document.getElementById('ai-card-title').textContent = data.titulo || '';
+      document.getElementById('ai-card-law').textContent = data.base_legal || '';
+      document.getElementById('ai-card-summary').textContent = data.resumo_executivo || '';
+
+      const actionEl = document.getElementById('ai-card-action');
+      actionEl.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = 'Próximo passo: ';
+      actionEl.appendChild(strong);
+      actionEl.appendChild(document.createTextNode(data.acao_recomendada || ''));
 
       const pointsContainer = document.getElementById('ai-card-points');
       pointsContainer.innerHTML = '';
       (data.pontos_chave || []).forEach(p => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2';
-        li.innerHTML = `<span class="material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5">check_circle</span><span>${p}</span>`;
+
+        const icon = document.createElement('span');
+        icon.className = 'material-symbols-outlined text-[16px] text-status-green icon-fill shrink-0 mt-0.5';
+        icon.textContent = 'check_circle';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = p;
+
+        li.appendChild(icon);
+        li.appendChild(textSpan);
         pointsContainer.appendChild(li);
       });
     }
 
-    function copyAIText() {
+    async function copyAIText() {
       const title = document.getElementById('ai-card-title').textContent;
       const summary = document.getElementById('ai-card-summary').textContent;
-      navigator.clipboard.writeText(`${title}\n\n${summary}`);
-      alert('Síntese jurídica copiada para a área de transferência!');
+      const text = `${title}\n\n${summary}`;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        }
+      } catch (e) {}
+      showToast('Síntese jurídica copiada para a área de transferência!');
     }
 
     window.onload = function() {
       initLeafletMap();
+      renderSearchResults(UBS_UNITS);
       checkAIServerStatus();
     };
   </script>

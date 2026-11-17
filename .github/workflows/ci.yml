@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend:
+    name: Back-end (Spring Boot)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Back-end
+
+    # SQL Server efêmero para os testes de contexto Spring Boot
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: CiPassw0rd123Strong
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P CiPassw0rd123Strong -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 20s
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: CiPassw0rd123Strong
+      SPRING_SESSION_JDBC_INITIALIZE_SCHEMA: always
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Permissão do mvnw
+        run: chmod +x mvnw
+
+      - name: Build e testes
+        run: ./mvnw -B clean verify
+
+      - name: Publicar relatórios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: Back-end/target/surefire-reports
+
+      - name: Publicar jar
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: Back-end/target/*.jar
+          if-no-files-found: error
+
+  ia-and-preview:
+    name: IA & Web Preview
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validar sintaxe do servidor IA (Node)
+        run: npm run check
+
+      - name: Validar integridade do preview.html
+        run: |
+          test -f Front-end/preview.html
+          if grep -q "fetch('http://localhost:8000" Front-end/preview.html; then
+            echo "Erro: Front-end/preview.html contém URL hardcoded para localhost:8000"
+            exit 1
+          fi
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validar sintaxe dos módulos Python de IA
+        run: python -m py_compile IA/agent.py IA/server.py IA/IA.PY

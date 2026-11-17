@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas-bg: #EFEFEE;
+  --card-border: #D6C2AC;
+}
+
+body {
+  margin: 0;
+  background-color: var(--canvas-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbar for mobile clean look */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+/* Pulse animation for live badge */
+@keyframes softPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.15);
+  }
+}
+
+.animate-soft-pulse {
+  animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
